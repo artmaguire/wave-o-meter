@@ -63,7 +63,6 @@
   <header>
     <div>
       <h1>Wave-o-meter</h1>
-      <p class="muted">Irish west-coast surf · next 7 days</p>
     </div>
     <button class="summary-btn" onclick={openSummary}>✨ Summary</button>
   </header>

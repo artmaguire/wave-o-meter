@@ -23,8 +23,16 @@ export function dirArrow(deg) {
 }
 
 export function fmtTime(iso) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Times are already Irish local wall-clock (backend fetches Europe/Dublin).
+  // Read straight from the string so the displayed hour is correct regardless
+  // of the viewing device's own timezone.
+  const m = iso.match(/T(\d{2}):(\d{2})/);
+  if (!m) return iso;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${h}:${min}${ampm}`;
 }
 
 export function fmtDay(iso) {

@@ -16,6 +16,7 @@ import time
 import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -76,8 +77,13 @@ def _get(url: str) -> dict:
                          f"{url[:80]} -> {last_err}")
 
 
+_TZ = ZoneInfo(config.TIMEZONE)
+
+
 def _parse_times(times: list[str]) -> list[datetime]:
-    return [datetime.fromisoformat(t).replace(tzinfo=timezone.utc) for t in times]
+    # Open-Meteo returns local wall-clock times (no offset) when a timezone is
+    # requested. Attach the zone so each timestamp is DST-correct and absolute.
+    return [datetime.fromisoformat(t).replace(tzinfo=_TZ) for t in times]
 
 
 @dataclass
@@ -114,7 +120,7 @@ def fetch_marine(lat: float, lon: float) -> dict:
         ]),
         "models": ",".join(config.ALL_WAVE_MODELS),
         "forecast_days": config.FORECAST_DAYS,
-        "timezone": "GMT",
+        "timezone": config.TIMEZONE,
     }
     url = f"{config.MARINE_API}?{urllib.parse.urlencode(params)}"
     return _get(url)
@@ -134,7 +140,7 @@ def fetch_base(lat: float, lon: float) -> dict:
             "sea_surface_temperature",
         ]),
         "forecast_days": config.FORECAST_DAYS,
-        "timezone": "GMT",
+        "timezone": config.TIMEZONE,
     }
     url = f"{config.MARINE_API}?{urllib.parse.urlencode(params)}"
     return _get(url)
@@ -147,10 +153,10 @@ def fetch_wind(lat: float, lon: float) -> dict:
         "latitude": lat,
         "longitude": lon,
         "hourly": "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
-        "daily": "sunrise,sunset,weather_code,uv_index_max",
+        "daily": "sunrise,sunset,weather_code,uv_index_max,temperature_2m_max,temperature_2m_min",
         "wind_speed_unit": "ms",
         "forecast_days": config.FORECAST_DAYS,
-        "timezone": "GMT",
+        "timezone": config.TIMEZONE,
     }
     url = f"{config.FORECAST_API}?{urllib.parse.urlencode(params)}"
     return _get(url)
@@ -233,6 +239,8 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
                             if j < len(w_daily.get("weather_code", [])) else None,
             "uv": (w_daily.get("uv_index_max") or [None])[j]
                   if j < len(w_daily.get("uv_index_max", [])) else None,
+            "air_max": (w_daily.get("temperature_2m_max") or [None])[j]
+                       if j < len(w_daily.get("temperature_2m_max", [])) else None,
         }
 
     return SpotForecast(
@@ -267,7 +275,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
         ]),
         "forecast_days": config.FORECAST_DAYS,
         "wind_speed_unit": "ms",
-        "timezone": "GMT",
+        "timezone": config.TIMEZONE,
     }
     url = f"{config.FORECAST_API}?{urllib.parse.urlencode(params)}"
     return _get(url)

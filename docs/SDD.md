@@ -542,6 +542,19 @@ gate was added (`auth.py` + `/api/gate/*` + a `Gate.svelte` screen):
   foundation (SDD §13) — the dataset that can tune forecasts to the owner's spots
   over time. Behind the gate (writes).
 
+### DST / timezone fix + UI polish (v1.3)
+- **DST bug fixed**: forecasts were fetched/displayed as GMT, but Ireland is on
+  IST (UTC+1) in summer, so every hour was off by one. Now fetches in
+  `Europe/Dublin` (config `TIMEZONE`), parses timestamps with that zone, and the
+  frontend reads the local wall-clock hour straight from the ISO string (robust
+  to the viewer's own device timezone). Sunrise now correctly ~07:14, not 06:14.
+  Buoy-accuracy validation stays UTC to match the buoy data.
+- Removed the home-page subtitle (truncated on mobile).
+- Day header conditions strip now includes **air temp** and **sea temp** bubbles
+  alongside weather / wetsuit / sun times / UV.
+- Clarified the detail table's **"Sea"** column: "clean" = long-period
+  groundswell, "choppy" = wind-driven sea, with an inline explainer.
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from

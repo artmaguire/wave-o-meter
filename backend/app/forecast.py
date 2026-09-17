@@ -154,6 +154,7 @@ def build_forecast(spot: Spot) -> dict:
         d["sunset"] = dinfo.get("sunset")
         d["weather"] = _weather_desc(dinfo.get("weather_code"))
         d["uv"] = dinfo.get("uv")
+        d["air_temp_c"] = dinfo.get("air_max")
         # sea temp: pick a midday hour on that date
         day_hours = [h for h in hours
                      if h["time"][:10] == d["date"] and not h.get("missing")]

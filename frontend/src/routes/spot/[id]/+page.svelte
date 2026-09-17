@@ -65,7 +65,7 @@
   const selHours = $derived(
     (data?.hours ?? []).filter((h) => {
       if (h.time.slice(0, 10) !== selDate || h.missing) return false;
-      const hr = new Date(h.time).getUTCHours();
+      const hr = parseInt(h.time.slice(11, 13), 10); // local wall-clock hour
       return hr >= 6 && hr <= 23;
     })
   );
@@ -78,7 +78,7 @@
 
   // Daylight window for the selected day (from sunrise/sunset), so we never
   // recommend a session in the dark.
-  function hourNum(iso) { return new Date(iso).getUTCHours(); }
+  function hourNum(iso) { return parseInt(iso.slice(11, 13), 10); }
   const daylight = $derived.by(() => {
     if (!selDay?.sunrise || !selDay?.sunset) return null;
     return { rise: hourNum(selDay.sunrise), set: hourNum(selDay.sunset) };
@@ -155,11 +155,12 @@
       <div class="dayhead">
         <strong>{fmtDayFull(selDay.date)}</strong>
         <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
-        {#if seaTemp != null}<span class="seatemp">🌡 {seaTemp.toFixed(0)}°C</span>{/if}
       </div>
       <!-- conditions strip: weather, wetsuit, daylight -->
       <div class="condstrip">
         {#if selDay.weather}<span class="cond">{selDay.weather}</span>{/if}
+        {#if selDay.air_temp_c != null}<span class="cond">🌡 Air {Math.round(selDay.air_temp_c)}°C</span>{/if}
+        {#if selDay.sea_temp_c != null}<span class="cond">🌊 Sea {Math.round(selDay.sea_temp_c)}°C</span>{/if}
         {#if selDay.wetsuit}<span class="cond">🤿 {selDay.wetsuit}</span>{/if}
         {#if selDay.sunrise}<span class="cond">🌅 {sunLabel(selDay.sunrise)}</span>{/if}
         {#if selDay.sunset}<span class="cond">🌇 {sunLabel(selDay.sunset)}</span>{/if}
@@ -203,7 +204,7 @@
               <span class="c-sea">
                 {#if h.components}
                   <span class="seatype seatype-{h.components.dominant}">
-                    {h.components.dominant === 'swell' ? 'clean' : 'wind'}
+                    {h.components.dominant === 'swell' ? 'clean' : 'choppy'}
                   </span>
                 {:else}·{/if}
               </span>
@@ -215,6 +216,8 @@
       {#if !selHours.length}
         <p class="muted empty">No hourly data for this day.</p>
       {/if}
+      <p class="seahint muted"><strong>Sea</strong>: “clean” = long-period
+        groundswell (better shaped waves); “choppy” = wind-driven sea (messier).</p>
       {#if bestHour}
         <div class="bestbox">
           <span class="star">★</span>
@@ -364,6 +367,7 @@
   .rel-cross-shore { color: var(--r3); }
   .c-tide { text-transform: capitalize; font-size: .85rem; color: var(--text-dim); }
   .c-sea { font-size: .8rem; }
+  .seahint { font-size: .76rem; margin-top: var(--sp-2); line-height: 1.4; }
   .seatype { padding: 2px 7px; border-radius: 999px; font-size: .74rem; font-weight: 600; }
   .seatype-swell { background: color-mix(in srgb, var(--r4) 22%, transparent); color: var(--r4); }
   .seatype-windsea { background: color-mix(in srgb, var(--r2) 22%, transparent); color: var(--r2); }

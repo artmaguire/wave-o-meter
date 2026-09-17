@@ -73,3 +73,7 @@ COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") not in ("0", "false", "Fals
 
 # County display order for the home page (SDD §11): Clare first.
 COUNTY_ORDER = ["Clare", "Sligo", "Mayo", "Kerry"]
+
+# All spots are in Ireland; fetch forecasts in Irish local time so displayed
+# hours are DST-correct (IST = UTC+1 in summer). Buoy validation stays UTC.
+TIMEZONE = os.environ.get("TIMEZONE", "Europe/Dublin")
