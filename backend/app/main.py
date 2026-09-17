@@ -16,10 +16,9 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import asynccontextmanager
-
-from apscheduler.schedulers.background import BackgroundScheduler
 from pathlib import Path
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -160,7 +159,7 @@ def health():
 
 @app.get("/api/spots")
 def spots():
-    return {"spots": [forecast._spot_meta(s) for s in load_spots()]}
+    return {"spots": [forecast.spot_meta(s) for s in load_spots()]}
 
 
 @app.get("/api/overview")

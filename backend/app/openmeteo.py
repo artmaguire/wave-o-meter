@@ -15,7 +15,7 @@ import threading
 import time
 import urllib.parse
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -45,7 +45,9 @@ def _get_client() -> httpx.Client:
             if _client is None:
                 transport = httpx.HTTPTransport(
                     retries=config.HTTP_RETRIES,
-                    local_address="0.0.0.0" if config.FORCE_IPV4 else None,
+                    # 0.0.0.0 = bind outbound socket to any IPv4 (forces IPv4,
+                    # not a server bind). See FORCE_IPV4 rationale above.
+                    local_address="0.0.0.0" if config.FORCE_IPV4 else None,  # noqa: S104
                 )
                 _client = httpx.Client(
                     timeout=httpx.Timeout(config.HTTP_TIMEOUT_S, connect=10.0),

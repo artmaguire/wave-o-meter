@@ -9,9 +9,10 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from . import cache, confidence, config, dayparts, openmeteo, scoring, summary as summary_mod
+from . import cache, confidence, config, dayparts, openmeteo, scoring
+from . import summary as summary_mod
 from . import tide as tide_mod
-from .spots import Spot, get_spot, load_spots
+from .spots import Spot, load_spots
 
 log = logging.getLogger("waveometer.forecast")
 
@@ -183,14 +184,14 @@ def build_forecast(spot: Spot) -> dict:
         d["wetsuit"] = wetsuit_for(sst)
 
     return {
-        "spot": _spot_meta(spot),
+        "spot": spot_meta(spot),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "hours": hours,
         "days": days,
     }
 
 
-def _spot_meta(spot: Spot) -> dict:
+def spot_meta(spot: Spot) -> dict:
     return {
         "id": spot.id, "name": spot.name, "display_name": spot.display_name,
         "aka": spot.aka, "county": spot.county, "lat": spot.lat, "lon": spot.lon,

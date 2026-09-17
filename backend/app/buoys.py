@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import time
 
-from . import config, openmeteo
+from . import openmeteo
 
 ERDDAP = "https://erddap.marine.ie/erddap/tabledap/IWBNetwork.json"
 

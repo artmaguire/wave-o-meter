@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 import math
 import statistics
 import time
@@ -18,6 +19,8 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 from . import config, openmeteo
+
+log = logging.getLogger("waveometer.accuracy")
 
 ERDDAP_CSV = "https://erddap.marine.ie/erddap/tabledap/IWBNetwork.csv"
 
@@ -102,7 +105,8 @@ def build_scorecard(force: bool = False) -> dict:
     for station, lat, lon, label in VALIDATION_BUOYS:
         try:
             obs = _measured(station, s, e)
-        except Exception:  # noqa: BLE001
+        except Exception as ex:  # noqa: BLE001
+            log.warning("accuracy: buoy %s measured fetch failed: %s", station, ex)
             continue
         if not obs:
             continue
@@ -110,7 +114,9 @@ def build_scorecard(force: bool = False) -> dict:
         for model in [config.PRIMARY_WAVE_MODEL, *config.SPREAD_WAVE_MODELS]:
             try:
                 pred = _forecast_series(lat, lon, model, s, e)
-            except Exception:  # noqa: BLE001
+            except Exception as ex:  # noqa: BLE001
+                log.warning("accuracy: %s forecast for %s failed: %s",
+                            model, station, ex)
                 continue
             st = _stats(pred, obs)
             if st:

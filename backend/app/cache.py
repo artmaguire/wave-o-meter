@@ -40,17 +40,6 @@ def init_db() -> None:
             )
             """
         )
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS model_accuracy (
-                buoy    TEXT NOT NULL,
-                model   TEXT NOT NULL,
-                window  TEXT NOT NULL,
-                mae     REAL, rmse REAL, corr REAL,
-                PRIMARY KEY (buoy, model, window)
-            )
-            """
-        )
 
 
 def get(spot_id: str) -> dict | None:

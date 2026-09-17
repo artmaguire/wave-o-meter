@@ -20,8 +20,6 @@ import hmac
 import os
 import time
 
-from . import config
-
 # Config (env-overridable). The answer defaults to the owner's; override in prod.
 GATE_ENABLED = os.environ.get("GATE_ENABLED", "1") not in ("0", "false", "False")
 GATE_QUESTION = os.environ.get("GATE_QUESTION", "What is the name of my surfboard?")
