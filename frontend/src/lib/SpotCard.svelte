@@ -12,29 +12,6 @@
   const trend = $derived(TREND[spot.trend] ?? null);
   const swell = $derived((spot.current ?? {}).swell ?? null);
 
-  // Surfline-style wave silhouette: a filled area whose top edge traces each
-  // day's swell height across the week, drawn behind the day columns.
-  const wavePoints = $derived.by(() => {
-    const n = days.length;
-    if (!n) return '';
-    const hs = days.map((d) => d.height_max ?? d.height_min ?? 0);
-    const max = Math.max(1, ...hs);
-    // Continuous filled band across ALL days: a tall floor (55% of the box)
-    // keeps it visible even on small-swell days, with a gentle undulation on
-    // top tracing the swell trend — reads as one flowing timeline, not columns.
-    const FLOOR = 55;      // % of box height always filled
-    const AMP = 30;        // extra % added at the biggest swell
-    const y = (h) => 100 - (FLOOR + AMP * (h / max));
-    // Points span the full 0..100 width incl. the two edges so the band reaches
-    // both ends (no gap at the start/finish).
-    const pts = [`0,${y(hs[0]).toFixed(1)}`];
-    hs.forEach((h, i) => {
-      const x = ((i + 0.5) / n) * 100;
-      pts.push(`${x.toFixed(1)},${y(h).toFixed(1)}`);
-    });
-    pts.push(`100,${y(hs[n - 1]).toFixed(1)}`);
-    return `0,100 ${pts.join(' ')} 100,100`;
-  });
 </script>
 
 <a class="card" href="/spot/{spot.id}" aria-label="View {spot.name} forecast">
@@ -55,25 +32,18 @@
     <p class="pending muted">Loading forecast…</p>
   {:else}
     <div class="scroller" use:scrollSync={'calendar'}>
-      <div class="wave-track">
-        <svg class="wave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <polygon points={wavePoints} />
-        </svg>
-        <div class="cells">
-          {#each days as day}
-            <div class="cell">
-              <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
-              <span class="bars">
-                {#each day.parts as p}
-                  <span class="bar" style="background:{ratingColor(p.score)}"></span>
-                {/each}
-              </span>
-              <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
-                title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
-            </div>
-          {/each}
+      {#each days as day}
+        <div class="cell">
+          <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
+          <span class="bars">
+            {#each day.parts as p}
+              <span class="bar" style="background:{ratingColor(p.score)}"></span>
+            {/each}
+          </span>
+          <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
+            title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
         </div>
-      </div>
+      {/each}
     </div>
   {/if}
 </a>
@@ -101,12 +71,6 @@
   .scroller { display: flex; gap: var(--sp-3); overflow-x: auto;
     -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .scroller::-webkit-scrollbar { display: none; }
-  /* wave silhouette behind the day columns, scrolls with them */
-  .wave-track { position: relative; display: inline-flex; width: max-content; }
-  .wave { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wave polygon { fill: color-mix(in srgb, var(--accent) 30%, var(--bg-elev)); }
-  .cells { position: relative; z-index: 1; display: flex; gap: var(--sp-3);
-    padding: var(--sp-2) 0; }
 
   /* fixed column width so cells line up with the shared day header */
   .cell { flex: 0 0 var(--day-col, 64px); display: flex; flex-direction: column;

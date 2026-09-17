@@ -89,23 +89,52 @@
     return hr >= daylight.rise && hr <= daylight.set;
   }
 
-  // Single best time to surf that day: highest-scoring DAYLIGHT hour that's
-  // genuinely worth it (Fair+). Score already accounts for tide/wind.
-  const bestHour = $derived.by(() => {
-    let best = null;
-    for (const h of selHours) {
-      if (h.score == null || h.score < 3 || !inDaylight(h)) continue;
-      if (!best || h.score > best.score) best = h;
-    }
-    return best;
+  // Best WINDOW to surf that day: find the peak daylight hour (Fair+), then
+  // extend outward through consecutive hours that stay good (within 0.5 of the
+  // peak and still Fair+), so a run of similar hours groups into one window
+  // (e.g. "Best 6–8pm") instead of a single hour.
+  const bestWindow = $derived.by(() => {
+    const good = selHours.filter((h) => h.score != null && inDaylight(h));
+    if (!good.length) return null;
+    let peakIdx = -1, peak = -1;
+    good.forEach((h, i) => { if (h.score >= 3 && h.score > peak) { peak = h.score; peakIdx = i; } });
+    if (peakIdx < 0) return null;
+    const thresh = Math.max(3, peak - 0.5);
+    // walk backward/forward while consecutive hours stay above threshold
+    let lo = peakIdx, hi = peakIdx;
+    const consecutive = (a, b) =>
+      Math.abs(hourNum(good[b].time) - hourNum(good[a].time)) === 1;
+    while (lo > 0 && good[lo - 1].score >= thresh && consecutive(lo - 1, lo)) lo--;
+    while (hi < good.length - 1 && good[hi + 1].score >= thresh && consecutive(hi, hi + 1)) hi++;
+    return { start: good[lo], end: good[hi], peak: good[peakIdx] };
   });
-  const bestHourTime = $derived(bestHour?.time ?? null);
-  const isBest = (h) => h.time === bestHourTime;
+  // set of hour-times inside the window (for the table highlight)
+  const windowTimes = $derived.by(() => {
+    if (!bestWindow) return new Set();
+    const set = new Set();
+    for (const h of selHours) {
+      const t = new Date(h.time).getTime();
+      if (t >= new Date(bestWindow.start.time).getTime() &&
+          t <= new Date(bestWindow.end.time).getTime()) set.add(h.time);
+    }
+    return set;
+  });
+  const isBest = (h) => windowTimes.has(h.time);
 
-  // Explain WHY this hour is the pick: name the conditions doing the work,
-  // from the score breakdown (swell direction, wind, tide factors 0-1).
+  // Label the window: "6pm" if a single hour, else "6–8pm".
+  const bestWindowLabel = $derived.by(() => {
+    if (!bestWindow) return '';
+    const a = fmtTime(bestWindow.start.time);
+    if (bestWindow.start.time === bestWindow.end.time) return a;
+    // end label = end hour + 1 (window covers through the end of that hour)
+    const endHr = (hourNum(bestWindow.end.time) + 1) % 24;
+    const endLabel = `${endHr % 12 || 12}${endHr >= 12 ? 'pm' : 'am'}`;
+    return `${a}–${endLabel}`;
+  });
+
+  // Explain WHY the window is the pick, from the peak hour's breakdown.
   const bestReason = $derived.by(() => {
-    const h = bestHour;
+    const h = bestWindow?.peak;
     if (!h) return '';
     const b = h.breakdown ?? {};
     const bits = [];
@@ -217,15 +246,15 @@
       {#if !selHours.length}
         <p class="muted empty">No hourly data for this day.</p>
       {/if}
-      {#if bestHour}
+      {#if bestWindow}
         <div class="bestbox">
           <span class="star">★</span>
           <div>
-            <strong>Best around {fmtTime(bestHour.time)}</strong> — {bestReason}
-            {#if bestHour.components?.secondary}
+            <strong>Best {bestWindowLabel}</strong> — {bestReason}
+            {#if bestWindow.peak.components?.secondary}
               <div class="secswell muted">
-                + secondary swell {mToFt(bestHour.components.secondary.height_m).toFixed(1)}ft
-                {bestHour.components.secondary.period_s}s from {bestHour.components.secondary.dir_compass}
+                + secondary swell {mToFt(bestWindow.peak.components.secondary.height_m).toFixed(1)}ft
+                {bestWindow.peak.components.secondary.period_s}s from {bestWindow.peak.components.secondary.dir_compass}
               </div>
             {/if}
           </div>
