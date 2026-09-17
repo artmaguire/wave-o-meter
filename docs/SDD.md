@@ -487,6 +487,24 @@ Backend modules: `config`, `spots`, `scoring`, `tide`, `confidence`,
 - Noted but deferred (personal project, owner opted out): unit tests for
   `confidence`, `tide`, `dayparts`, `summary`.
 
+### Access gate (public URL protection)
+Since the app is exposed on a public home-server URL, a lightweight shared-answer
+gate was added (`auth.py` + `/api/gate/*` + a `Gate.svelte` screen):
+- Question: "What is the name of my surfboard?" (answer checked SERVER-SIDE only;
+  never sent to the browser). Case/whitespace-insensitive, constant-time compare.
+- Success sets an HMAC-signed, expiring cookie (`GATE_SECRET`). Guesses are
+  limited to 3 per IP (`GATE_MAX_TRIES`) then a 15-min lockout; a correct answer
+  during lockout is still refused.
+- Middleware protects the data API and app routes; gate API, health and static
+  assets stay open so the gate page can render. API calls without a valid cookie
+  get 401; page loads render the gate client-side.
+- Config: GATE_ENABLED, GATE_QUESTION, GATE_ANSWER, GATE_SECRET, GATE_MAX_TRIES,
+  GATE_LOCKOUT_S, GATE_SESSION_S, COOKIE_SECURE.
+- **HONEST LIMITATION:** this is a deterrent, not strong security (one shared
+  secret, no accounts). It is only meaningful over HTTPS — for a public URL, put
+  it behind a TLS reverse proxy (e.g. Caddy) and set COOKIE_SECURE=1. Without
+  TLS the answer and cookie travel in plaintext.
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from

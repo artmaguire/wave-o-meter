@@ -1,50 +1,73 @@
-// Svelte action: keep multiple horizontal scrollers in lockstep, and make them
-// scrollable on desktop (mouse wheels only scroll vertically by default).
+// Svelte action: keep multiple horizontal scrollers in lockstep smoothly.
 //
-// All elements using `use:scrollSync={group}` with the same group name share
-// one scrollLeft — scrolling any (day header or any spot row) moves all, like
-// Surfline's calendar. rAF-throttled to avoid feedback loops.
+// All elements using `use:scrollSync={group}` share one scrollLeft. To stay
+// smooth on mobile momentum scrolling, only the element the user is actively
+// touching/driving broadcasts its position; followers are updated but do NOT
+// re-broadcast (an `applying` flag suppresses the feedback loop that otherwise
+// causes jank as 10+ scrollers fight each other every frame).
 
-const groups = new Map(); // name -> Set<HTMLElement>
+const groups = new Map(); // name -> { members:Set, active:HTMLElement|null, applying:boolean }
 
-export function scrollSync(node, group = 'default') {
-  if (!groups.has(group)) groups.set(group, new Set());
-  const members = groups.get(group);
-  members.add(node);
+function getGroup(name) {
+  if (!groups.has(name))
+    groups.set(name, { members: new Set(), active: null, applying: false });
+  return groups.get(name);
+}
+
+export function scrollSync(node, name = 'default') {
+  const g = getGroup(name);
+  g.members.add(node);
 
   let raf = 0;
+
+  const claim = () => { g.active = node; };
+
   const onScroll = () => {
+    // Ignore scroll events we caused programmatically, and events from
+    // followers while another element is the active driver.
+    if (g.applying) return;
+    if (g.active && g.active !== node) return;
     if (raf) return;
     raf = requestAnimationFrame(() => {
       raf = 0;
       const x = node.scrollLeft;
-      for (const other of members) {
+      g.applying = true;
+      for (const other of g.members) {
         if (other !== node && other.scrollLeft !== x) other.scrollLeft = x;
       }
+      g.applying = false;
     });
   };
 
-  // Desktop: translate vertical wheel into horizontal scroll so a mouse can
-  // move the calendar. Only when there's actually horizontal overflow, and
-  // when the gesture is predominantly vertical (leave trackpad h-scroll alone).
+  // Whoever the user touches/points at becomes the driver.
+  const onPointerDown = () => claim();
+  const onTouchStart = () => claim();
+
+  node.addEventListener('scroll', onScroll, { passive: true });
+  node.addEventListener('pointerdown', onPointerDown, { passive: true });
+  node.addEventListener('touchstart', onTouchStart, { passive: true });
+
+  // Desktop: translate vertical wheel into horizontal scroll (only on overflow,
+  // only when the gesture is mostly vertical so trackpad h-scroll still works).
   const onWheel = (e) => {
-    const overflow = node.scrollWidth > node.clientWidth;
-    if (!overflow) return;
+    if (node.scrollWidth <= node.clientWidth) return;
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      claim();
       node.scrollLeft += e.deltaY;
       e.preventDefault();
     }
   };
-
-  node.addEventListener('scroll', onScroll, { passive: true });
   node.addEventListener('wheel', onWheel, { passive: false });
 
   return {
     destroy() {
       node.removeEventListener('scroll', onScroll);
+      node.removeEventListener('pointerdown', onPointerDown);
+      node.removeEventListener('touchstart', onTouchStart);
       node.removeEventListener('wheel', onWheel);
-      members.delete(node);
-      if (members.size === 0) groups.delete(group);
+      g.members.delete(node);
+      if (g.active === node) g.active = null;
+      if (g.members.size === 0) groups.delete(name);
     }
   };
 }

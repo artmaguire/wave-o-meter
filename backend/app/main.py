@@ -20,11 +20,12 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import cache, config, forecast
+from . import auth, cache, config, forecast
 from .spots import get_spot, load_spots
 
 logging.basicConfig(
@@ -72,6 +73,83 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+
+# --- Access gate (see auth.py) --------------------------------------------
+# Paths reachable WITHOUT passing the gate: the gate API itself, health, and
+# static assets (so the gate page can render). Everything else — the data API
+# and the app routes — requires a valid session cookie.
+_GATE_OPEN_PREFIXES = ("/api/gate", "/api/health", "/_app", "/favicon", "/fonts")
+
+
+def _client_ip(request: Request) -> str:
+    # Behind a reverse proxy, trust X-Forwarded-For's first hop if present.
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def gate_middleware(request: Request, call_next):
+    if not auth.GATE_ENABLED:
+        return await call_next(request)
+
+    path = request.url.path
+    if any(path == p or path.startswith(p) for p in _GATE_OPEN_PREFIXES):
+        return await call_next(request)
+
+    token = request.cookies.get(auth.COOKIE_NAME)
+    if auth.verify_token(token):
+        return await call_next(request)
+
+    # Not authorised. For API calls return 401 JSON; for page loads send the
+    # SPA (it will show the gate screen based on the failing /api/gate/status).
+    if path.startswith("/api/"):
+        return JSONResponse({"detail": "gate: not authorised"}, status_code=401)
+    return await call_next(request)  # SPA renders the gate view client-side
+
+
+@app.get("/api/gate/status")
+def gate_status(request: Request):
+    token = request.cookies.get(auth.COOKIE_NAME)
+    locked, remaining = auth.is_locked(_client_ip(request))
+    return {
+        "enabled": auth.GATE_ENABLED,
+        "authorised": auth.verify_token(token),
+        "question": auth.GATE_QUESTION,
+        "locked": locked,
+        "lockout_remaining_s": remaining,
+        "max_tries": auth.GATE_MAX_TRIES,
+    }
+
+
+@app.post("/api/gate/answer")
+async def gate_answer(request: Request):
+    ip = _client_ip(request)
+    locked, remaining = auth.is_locked(ip)
+    if locked:
+        return JSONResponse(
+            {"ok": False, "locked": True, "lockout_remaining_s": remaining},
+            status_code=429,
+        )
+    body = await request.json()
+    if auth.check_answer(body.get("answer", "")):
+        auth.clear(ip)
+        resp = JSONResponse({"ok": True})
+        resp.set_cookie(
+            auth.COOKIE_NAME, auth.issue_token(),
+            max_age=auth.GATE_SESSION_S, httponly=True, samesite="lax",
+            secure=config.COOKIE_SECURE,
+        )
+        return resp
+    remaining_tries = auth.register_failure(ip)
+    locked, lock_remaining = auth.is_locked(ip)
+    return JSONResponse(
+        {"ok": False, "tries_remaining": remaining_tries,
+         "locked": locked, "lockout_remaining_s": lock_remaining},
+        status_code=401,
+    )
 
 
 @app.get("/api/health")

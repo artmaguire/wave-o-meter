@@ -12,3 +12,14 @@ export const getOverview = () => getJSON('/api/overview');
 export const getForecast = (id) => getJSON(`/api/spots/${id}/forecast`);
 export const getSpots = () => getJSON('/api/spots');
 export const getSummary = () => getJSON('/api/summary');
+
+// --- access gate ---
+export const getGateStatus = () => getJSON('/api/gate/status');
+export async function submitGateAnswer(answer) {
+  const res = await fetch('/api/gate/answer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answer })
+  });
+  return { status: res.status, ...(await res.json()) };
+}

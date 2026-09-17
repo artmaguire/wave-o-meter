@@ -63,5 +63,9 @@ CORS_ORIGINS = [
     ).split(",") if o.strip()
 ]
 
+# Set the gate cookie's Secure flag (send only over HTTPS). Enable in prod when
+# behind a TLS reverse proxy: COOKIE_SECURE=1.
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") not in ("0", "false", "False")
+
 # County display order for the home page (SDD §11): Clare first.
 COUNTY_ORDER = ["Clare", "Sligo", "Mayo", "Kerry"]
