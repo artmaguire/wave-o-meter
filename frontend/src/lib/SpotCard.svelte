@@ -11,6 +11,24 @@
   };
   const trend = $derived(TREND[spot.trend] ?? null);
   const swell = $derived((spot.current ?? {}).swell ?? null);
+
+  // Surfline-style wave silhouette: a filled area whose top edge traces each
+  // day's swell height across the week, drawn behind the day columns.
+  const wavePoints = $derived.by(() => {
+    const n = days.length;
+    if (!n) return '';
+    const hs = days.map((d) => d.height_max ?? d.height_min ?? 0);
+    const max = Math.max(1, ...hs);
+    // x at each day-column centre (0..100); y: taller swell -> higher (lower y).
+    // Keep it a gentle band: amplitude ~55% of height, floor offset so small
+    // days still show some wave.
+    const pts = hs.map((h, i) => {
+      const x = ((i + 0.5) / n) * 100;
+      const y = 100 - (18 + 0.55 * (h / max) * 100);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    return `0,100 0,${(100 - 18).toFixed(1)} ${pts.join(' ')} 100,${(100 - 18).toFixed(1)} 100,100`;
+  });
 </script>
 
 <a class="card" href="/spot/{spot.id}" aria-label="View {spot.name} forecast">
@@ -31,18 +49,25 @@
     <p class="pending muted">Loading forecast…</p>
   {:else}
     <div class="scroller" use:scrollSync={'calendar'}>
-      {#each days as day}
-        <div class="cell">
-          <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
-          <span class="bars">
-            {#each day.parts as p}
-              <span class="bar" style="background:{ratingColor(p.score)}"></span>
-            {/each}
-          </span>
-          <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
-            title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
+      <div class="wave-track">
+        <svg class="wave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon points={wavePoints} />
+        </svg>
+        <div class="cells">
+          {#each days as day}
+            <div class="cell">
+              <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
+              <span class="bars">
+                {#each day.parts as p}
+                  <span class="bar" style="background:{ratingColor(p.score)}"></span>
+                {/each}
+              </span>
+              <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
+                title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
+            </div>
+          {/each}
         </div>
-      {/each}
+      </div>
     </div>
   {/if}
 </a>
@@ -70,6 +95,13 @@
   .scroller { display: flex; gap: var(--sp-3); overflow-x: auto;
     -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .scroller::-webkit-scrollbar { display: none; }
+  /* wave silhouette behind the day columns, scrolls with them */
+  .wave-track { position: relative; display: inline-flex; }
+  .wave { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wave polygon { fill: color-mix(in srgb, var(--accent) 24%, var(--bg-elev)); }
+  .cells { position: relative; z-index: 1; display: flex; gap: var(--sp-3);
+    padding: var(--sp-2) 0; }
+
   /* fixed column width so cells line up with the shared day header */
   .cell { flex: 0 0 var(--day-col, 64px); display: flex; flex-direction: column;
     align-items: center; gap: 5px; }
