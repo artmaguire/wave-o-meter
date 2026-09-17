@@ -114,6 +114,7 @@
     if ((b.swell_direction ?? 0) >= 0.9) bits.push(`swell straight from the ${h.swell.direction_compass}`);
     if ((b.tide ?? 0) >= 0.9) bits.push(`a favourable ${h.tide.state} tide`);
     if ((h.swell?.period_s ?? 0) >= 11) bits.push(`long-period groundswell (${h.swell.period_s}s)`);
+    if ((b.clean ?? 0) >= 0.85 && h.components?.dominant === 'swell') bits.push('a clean sea');
     if (!bits.length) bits.push('the best mix of size, wind and tide of the day');
     return bits.join(', ') + '.';
   });
@@ -216,8 +217,6 @@
       {#if !selHours.length}
         <p class="muted empty">No hourly data for this day.</p>
       {/if}
-      <p class="seahint muted"><strong>Sea</strong>: “clean” = long-period
-        groundswell (better shaped waves); “choppy” = wind-driven sea (messier).</p>
       {#if bestHour}
         <div class="bestbox">
           <span class="star">★</span>

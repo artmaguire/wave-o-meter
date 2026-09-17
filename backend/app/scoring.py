@@ -67,8 +67,9 @@ class ScoreBreakdown:
     label: str
     base: float                  # size/power contribution, 0-5 pre-factors
     swell_dir_factor: float      # 0-1 multiplier
-    wind_factor: float           # 0-1 multiplier
+    wind_factor: float           # 0-1 multiplier (incl. gust penalty)
     tide_factor: float           # 0-1 multiplier
+    clean_factor: float          # 0-1 multiplier (groundswell vs windsea)
     flat: bool                   # True if forced to 0 (below workable swell)
 
     def as_dict(self) -> dict:
@@ -80,9 +81,44 @@ class ScoreBreakdown:
                 "swell_direction": round(self.swell_dir_factor, 2),
                 "wind": round(self.wind_factor, 2),
                 "tide": round(self.tide_factor, 2),
+                "clean": round(self.clean_factor, 2),
             },
             "flat": self.flat,
         }
+
+
+def _period_quality(period_s: float, spot: Spot) -> float:
+    """Swell-period quality, stricter for reefs.
+
+    Long-period groundswell has far more push and cleaner form. Reefs (Easkey,
+    Magharees) barely work on short-period windswell, so they need longer
+    period to score well; beach breaks are more forgiving.
+    """
+    if spot.is_reef:
+        # reef: poor below ~9s, excellent >=13s
+        lo_s, hi_s, floor = 9.0, 13.0, 0.4
+    else:
+        # beach: poor below ~6s, excellent >=12s
+        lo_s, hi_s, floor = 6.0, 12.0, 0.6
+    if period_s <= lo_s:
+        return floor
+    if period_s >= hi_s:
+        return 1.0
+    return floor + (1.0 - floor) * (period_s - lo_s) / (hi_s - lo_s)
+
+
+def _size_quality(height_m: float, spot: Spot) -> float:
+    """0-1 size quality across the spot's workable range, with a 'too big'
+    falloff above it (spots close out / turn to washing-machine when oversized)."""
+    lo, hi = spot.swell_height_m
+    if height_m < lo:
+        return 0.0
+    if height_m <= hi:
+        # ramp from decent (0.5) at min to full (1.0) at the top of range
+        return 0.5 + 0.5 * (height_m - lo) / max(0.1, (hi - lo))
+    # above the workable max: decay — by ~1.5x the max it's largely unsurfable
+    over = (height_m - hi) / max(0.5, hi * 0.5)
+    return max(0.15, 1.0 - over)
 
 
 def _base_from_size_period(height_m: float, period_s: float,
@@ -90,27 +126,32 @@ def _base_from_size_period(height_m: float, period_s: float,
     """Size & power -> 0-5 base, clamped to the spot's workable range.
 
     Below the workable minimum returns 0 (caller enforces the hard 'No surf'
-    floor). Within range, larger + longer-period swell scores higher; period is
-    a quality multiplier because long-period groundswell has far more push than
-    short-period windswell of the same height.
+    floor). Combines a size-quality curve (with a too-big falloff) and a
+    per-break-type period-quality multiplier.
     """
-    lo, hi = spot.swell_height_m
+    lo, _ = spot.swell_height_m
     if height_m < lo:
         return 0.0
+    size_q = _size_quality(height_m, spot)
+    period_q = _period_quality(period_s, spot)
+    return min(5.0, 5.0 * size_q * period_q)
 
-    # Size: linear from lo->hi mapped to ~2.5->5, capped (bigger isn't always
-    # better but for these spots we treat in-range-and-up as good size).
-    size = 2.5 + 2.5 * min(1.0, (height_m - lo) / max(0.1, (hi - lo)))
 
-    # Period quality: <7s poor windswell, >=12s excellent groundswell.
-    if period_s <= 6:
-        period_q = 0.6
-    elif period_s >= 12:
-        period_q = 1.0
-    else:
-        period_q = 0.6 + 0.4 * (period_s - 6) / 6.0
+def _clean_factor(swell_h: float | None, windwave_h: float | None) -> float:
+    """Groundswell vs wind-sea cleanliness (0-1).
 
-    return min(5.0, size * period_q)
+    The forecast splits total sea into ground swell and locally-generated wind
+    waves. A sea dominated by wind chop is messier and surfs worse than clean
+    groundswell of the same total height. Ratio of swell to total drives this.
+    """
+    if swell_h is None or windwave_h is None:
+        return 1.0  # no data -> don't penalise
+    total = swell_h + windwave_h
+    if total <= 0.05:
+        return 1.0
+    swell_frac = swell_h / total
+    # all groundswell -> 1.0; half wind-sea -> ~0.7; all wind-sea -> ~0.45
+    return 0.45 + 0.55 * swell_frac
 
 
 def _swell_dir_factor(swell_from_deg: float, spot: Spot) -> float:
@@ -128,19 +169,18 @@ def _swell_dir_factor(swell_from_deg: float, spot: Spot) -> float:
 
 
 def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
-                 spot: Spot) -> float:
-    """Offshore = good, onshore = bad, scaled by wind speed.
+                 spot: Spot, gust_ms: float | None = None) -> float:
+    """Offshore = good, onshore = bad, scaled by wind speed, minus a gust penalty.
 
     Light winds barely matter (clean either way); strong onshore wrecks it.
-    optimal_wind_dir is the offshore bearing window (wind coming FROM the land).
+    Gusty wind (big gap between mean and gust) is bumpy even when offshore, so a
+    large gust spread trims the score. optimal_wind_dir is the offshore bearing
+    window (wind coming FROM the land).
     """
-    # How offshore is the wind? 1.0 = dead offshore, 0 = dead onshore.
     center, _ = window_center_and_half(spot.optimal_wind_dir)
     off_dist = angular_distance(wind_from_deg, center)  # 0..180
     offshoreness = 1.0 - off_dist / 180.0               # 1 offshore .. 0 onshore
 
-    # Weight by speed: below ~3 m/s wind hardly matters; above ~12 m/s it
-    # dominates. Blend between "neutral" and the offshoreness signal.
     if wind_speed_ms <= 3:
         speed_w = 0.15
     elif wind_speed_ms >= 12:
@@ -148,9 +188,16 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     else:
         speed_w = 0.15 + 0.85 * (wind_speed_ms - 3) / 9.0
 
-    # Neutral-good (0.9) when calm — light wind is clean; pull toward the
-    # offshoreness signal as wind strengthens (strong onshore tanks it).
-    return (1.0 - speed_w) * 0.9 + speed_w * offshoreness
+    base = (1.0 - speed_w) * 0.9 + speed_w * offshoreness
+
+    # Gust penalty: gust spread beyond ~5 m/s over the mean = bumpy; cap the
+    # penalty at ~0.2 off the factor.
+    if gust_ms is not None and gust_ms > wind_speed_ms:
+        spread = gust_ms - wind_speed_ms
+        gust_pen = min(0.2, max(0.0, (spread - 5.0) / 10.0 * 0.2))
+        base *= (1.0 - gust_pen)
+
+    return max(0.0, base)
 
 
 def _tide_factor(tide_state: str, spot: Spot) -> float:
@@ -190,20 +237,29 @@ def score_hour(
     wind_speed_ms: float,
     wind_from_deg: float,
     tide_state: str,
+    gust_ms: float | None = None,
+    swell_height_m: float | None = None,
+    wind_wave_height_m: float | None = None,
 ) -> ScoreBreakdown:
-    """Score a single hour for a spot. Returns the 0-5 rating + breakdown."""
+    """Score a single hour for a spot. Returns the 0-5 rating + breakdown.
+
+    Optional inputs enrich the score when available:
+      gust_ms            -> gust penalty on the wind factor
+      swell/wind_wave_h  -> cleanliness factor (groundswell vs wind-sea)
+    """
     base = _base_from_size_period(wave_height_m, wave_period_s, spot)
 
     # Hard 'No surf' floor: below workable swell there is no surf regardless of
     # perfect wind/tide (SDD §6).
     if base <= 0.0:
-        return ScoreBreakdown(0.0, LABELS[0], 0.0, 0.0, 0.0, 0.0, flat=True)
+        return ScoreBreakdown(0.0, LABELS[0], 0.0, 0.0, 0.0, 0.0, 0.0, flat=True)
 
     swell_dir_factor = _swell_dir_factor(wave_from_deg, spot)
-    wind_factor = _wind_factor(wind_from_deg, wind_speed_ms, spot)
+    wind_factor = _wind_factor(wind_from_deg, wind_speed_ms, spot, gust_ms)
     tide_factor = _tide_factor(tide_state, spot)
+    clean_factor = _clean_factor(swell_height_m, wind_wave_height_m)
 
-    score = base * swell_dir_factor * wind_factor * tide_factor
+    score = base * swell_dir_factor * wind_factor * tide_factor * clean_factor
     score = max(0.0, min(5.0, score))
 
     return ScoreBreakdown(
@@ -213,5 +269,6 @@ def score_hour(
         swell_dir_factor=swell_dir_factor,
         wind_factor=wind_factor,
         tide_factor=tide_factor,
+        clean_factor=clean_factor,
         flat=False,
     )

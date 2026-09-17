@@ -117,7 +117,22 @@
         <span class="chip">{CONF_SYMBOL.low} Low</span>
         <span class="chip">{CONF_SYMBOL.long_range} Long-range</span>
       </div>
-      <p class="muted small">Tap a spot for the hour-by-hour detail (swell, wind, tide).</p>
+      <p>Tap a spot for the hour-by-hour detail. In there you'll also see:</p>
+      <ul class="legend-list">
+        <li><strong>Sea</strong> — <em>clean</em> means long-period groundswell
+          (better-shaped, cleaner waves); <em>choppy</em> means wind-driven sea
+          (messier). Clean swell scores higher than choppy of the same size.</li>
+        <li><strong>Swell / Wind / Tide</strong> — the raw conditions per hour,
+          with wind shown as offshore (good), cross-shore, or onshore (poor).</li>
+        <li><strong>★ Best time</strong> — the top daylight hour to surf that day,
+          with a plain-English reason (offshore wind, favourable tide, etc.).</li>
+        <li><strong>Air / Sea temp &amp; wetsuit</strong> — plus sunrise, sunset
+          and UV in the day's conditions strip.</li>
+        <li><strong>Your sessions</strong> — log what it was really like; over time
+          this tunes the forecast to your spots.</li>
+      </ul>
+      <p class="muted small">Forecasts open-ocean conditions, not the exact wave on
+        the sandbank — a strong guide, not a guarantee.</p>
     </details>
 
     {#if buoys.length}
@@ -238,6 +253,9 @@
   .chip { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem;
     background: var(--bg-elev); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; }
   .chip .sw { width: 10px; height: 10px; border-radius: 3px; }
+  .legend-list { margin: var(--sp-2) 0 0; padding-left: var(--sp-4); font-size: .86rem;
+    line-height: 1.5; }
+  .legend-list li { margin-bottom: var(--sp-2); }
 
 
   /* shared day column width, used by calbar + every SpotCard scroller */

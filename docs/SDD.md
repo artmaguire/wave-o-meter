@@ -555,6 +555,22 @@ gate was added (`auth.py` + `/api/gate/*` + a `Gate.svelte` screen):
 - Clarified the detail table's **"Sea"** column: "clean" = long-period
   groundswell, "choppy" = wind-driven sea, with an inline explainer.
 
+### Richer scoring algorithm (v1.4)
+The 0-5 score now uses five factors (was four), all in the transparent breakdown:
+- **Cleanliness** (`clean`): groundswell vs wind-sea ratio — clean long-period
+  swell scores well above wind-chop of the same total height. Uses the
+  swell/wind-wave split. This was the biggest accuracy gap (score previously
+  used total height only).
+- **Gust penalty**: a large gust-over-mean spread trims the wind factor (gusty
+  offshore is still bumpy).
+- **Per-break-type period**: reefs (Easkey, Magharees) need longer-period swell
+  to score well; beaches are more forgiving. Encodes real break behaviour.
+- **"Too big" falloff**: size quality decays above a spot's workable max
+  (closes-out / washing-machine), instead of plateauing.
+Tests: 11 (was 7) — added cleanliness, gust, too-big, and reef-period cases.
+The "best time" reason and the home "how to read" legend explain these; the
+per-spot Sea explainer moved into that central legend.
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from

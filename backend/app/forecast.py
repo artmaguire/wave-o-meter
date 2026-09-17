@@ -121,6 +121,9 @@ def build_forecast(spot: Spot) -> dict:
         r = scoring.score_hour(
             spot, wave_height_m=hs, wave_period_s=tp, wave_from_deg=wd,
             wind_speed_ms=ws, wind_from_deg=wdir, tide_state=ts,
+            gust_ms=fc.wind_gust[i],
+            swell_height_m=fc.swell_height[i],
+            wind_wave_height_m=fc.wind_wave_height[i],
         )
         hours.append({
             "time": t.isoformat(),

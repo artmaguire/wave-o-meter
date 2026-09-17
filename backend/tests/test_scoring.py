@@ -80,6 +80,45 @@ def test_label_banding():
     assert scoring.label_for(4.5) == "Very good"
 
 
+def test_windsea_penalised_vs_clean_groundswell():
+    lahinch = get_spot("lahinch")
+    common = dict(wave_height_m=2.0, wave_period_s=13, wave_from_deg=270,
+                  wind_speed_ms=5, wind_from_deg=70, tide_state="low")
+    clean = scoring.score_hour(lahinch, **common,
+                               swell_height_m=1.9, wind_wave_height_m=0.3)
+    messy = scoring.score_hour(lahinch, **common,
+                               swell_height_m=0.6, wind_wave_height_m=1.6)
+    assert messy.score < clean.score
+    assert messy.clean_factor < clean.clean_factor
+
+
+def test_gusty_wind_trims_score():
+    lahinch = get_spot("lahinch")
+    common = dict(wave_height_m=2.0, wave_period_s=13, wave_from_deg=270,
+                  wind_speed_ms=6, wind_from_deg=70, tide_state="low")
+    steady = scoring.score_hour(lahinch, **common, gust_ms=7)
+    gusty = scoring.score_hour(lahinch, **common, gust_ms=20)
+    assert gusty.wind_factor < steady.wind_factor
+
+
+def test_too_big_penalised():
+    lahinch = get_spot("lahinch")  # workable to ~3.0 m
+    common = dict(wave_period_s=13, wave_from_deg=270, wind_speed_ms=5,
+                  wind_from_deg=70, tide_state="low")
+    good = scoring.score_hour(lahinch, wave_height_m=2.8, **common)
+    huge = scoring.score_hour(lahinch, wave_height_m=7.0, **common)
+    assert huge.score < good.score
+
+
+def test_reef_needs_longer_period():
+    reef = get_spot("easkey_left")
+    beach = get_spot("lahinch")
+    # short-period 7s swell: reef should score its size-base lower than beach
+    reef_pq = scoring._period_quality(7.0, reef)
+    beach_pq = scoring._period_quality(7.0, beach)
+    assert reef_pq < beach_pq
+
+
 if __name__ == "__main__":
     # allow running without pytest
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
