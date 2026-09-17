@@ -108,8 +108,12 @@
     return `${a}–${endHr % 12 || 12}${endHr >= 12 ? 'pm' : 'am'}`;
   }
 
-  // ALL good surf windows that day: contiguous runs of daylight hours scoring
-  // Fair+ (>=3). Split days show multiple windows (e.g. morning AND evening).
+  // Recommended surf windows that day: contiguous runs of daylight hours that
+  // are clearly GOOD (>=3.5), and only kept if the run's PEAK reaches 4.0 —
+  // so a "window" means genuinely good surf, not merely Fair. Stricter than
+  // before to avoid flagging long marginal stretches.
+  const WIN_ENTER = 3.5;   // an hour must reach this to be in a window
+  const WIN_PEAK = 4.0;    // the run's best hour must reach this to count
   const bestWindows = $derived.by(() => {
     const good = selHours.filter((h) => h.score != null && inDaylight(h));
     const windows = [];
@@ -117,9 +121,11 @@
     const flush = () => {
       if (run.length) {
         const peak = run.reduce((a, b) => (b.score > a.score ? b : a));
-        windows.push({ start: run[0], end: run[run.length - 1], peak,
-                       label: windowLabel(run[0], run[run.length - 1]),
-                       reason: windowReason(peak) });
+        if (peak.score >= WIN_PEAK) {
+          windows.push({ start: run[0], end: run[run.length - 1], peak,
+                         label: windowLabel(run[0], run[run.length - 1]),
+                         reason: windowReason(peak) });
+        }
       }
       run = [];
     };
@@ -127,7 +133,7 @@
       const h = good[i];
       const contiguous = run.length &&
         hourNum(h.time) - hourNum(run[run.length - 1].time) === 1;
-      if (h.score >= 3) {
+      if (h.score >= WIN_ENTER) {
         if (contiguous) run.push(h);
         else { flush(); run = [h]; }
       } else {
