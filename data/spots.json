@@ -31,7 +31,7 @@
       "notes": "Exposed beach/reef break, very consistent, works year-round. Breaks left and right. Best: NW swell + SE offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Doughmore",
+        "surfline": "https://www.surfline.com/surf-report/doughmore-bay-beach/61417c02e13493a6cb0b21d1",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Doughmore/forecasts/latest"
       }
     },
@@ -60,7 +60,7 @@
       "notes": "Exposed beach break, works year-round, often crowded. Some shelter from N winds. Best: W swell + NE offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Lahinch",
+        "surfline": "https://www.surfline.com/surf-report/lahinch-beach/584204204e65fad6a7709126",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Lahinch/forecasts/latest"
       }
     },
@@ -89,7 +89,7 @@
       "notes": "Fairly exposed beach break, rarely crowded. Breaks left and right. Best: WSW swell + E offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Fanore",
+        "surfline": "https://www.surfline.com/surf-report/fanore-beach/640b9e51451905b052e0cc0d",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Fanore/forecasts/latest"
       }
     },
@@ -148,7 +148,7 @@
       "notes": "Exposed left-hand reef by the rivermouth, dependable, works year-round, often crowded. Best: NW swell + S offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Easkey%20Left",
+        "surfline": "https://www.surfline.com/surf-report/easkey/5842041f4e65fad6a7708c3d",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Left/forecasts/latest"
       }
     },
@@ -177,7 +177,7 @@
       "notes": "Exposed right-hand reef, flat in summer, can get crowded. Best around low tide (works low to high). Best: NW swell + S offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Easkey%20Right",
+        "surfline": "https://www.surfline.com/surf-report/easkey-right/605108f4910e9d6e864795ae",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Right/forecasts/latest"
       }
     },
@@ -206,7 +206,7 @@
       "notes": "Exposed beach/sandbar break, mostly groundswell, works year-round, crowds when on. Best: WNW swell + SE offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Strandhill",
+        "surfline": "https://www.surfline.com/surf-report/strandhill/5842041f4e65fad6a7708b58",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Strandhill/forecasts/latest"
       }
     },
@@ -235,7 +235,7 @@
       "notes": "Sheltered Clew Bay sand beach; needs bigger swell. Orientation INFERRED from The Magharees (similar exposed sand beach) — no direct data gathered.",
       "orientation_verified": false,
       "links": {
-        "surfline": "https://www.surfline.com/search/Bertra"
+        "surfline": "https://www.surfline.com/surf-report/bertra-beach-murrisk-/614225683509a458801553ee"
       }
     },
     {
@@ -263,7 +263,7 @@
       "notes": "Achill Island exposed break, quite reliable, works year-round, rarely crowded. Best: SW swell + NE offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Keel%20Achill",
+        "surfline": "https://www.surfline.com/surf-report/keel-beach/584204204e65fad6a7709124",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Keel/forecasts/latest"
       }
     },
@@ -293,7 +293,7 @@
       "notes": "Also known as Mossies. Sand beach on the Maharees peninsula, Brandon Bay. Best: NW swell + ESE offshore wind.",
       "orientation_verified": true,
       "links": {
-        "surfline": "https://www.surfline.com/search/Maharees",
+        "surfline": "https://www.surfline.com/surf-report/brandon-bay/584204204e65fad6a770945c",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Scraggane-Bay/forecasts/latest"
       }
     }
