@@ -83,11 +83,22 @@ _GATE_OPEN_PREFIXES = ("/api/gate", "/api/health", "/_app", "/favicon", "/fonts"
 
 
 def _client_ip(request: Request) -> str:
-    # Behind a reverse proxy, trust X-Forwarded-For's first hop if present.
-    xff = request.headers.get("x-forwarded-for")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    """Client IP for rate-limiting.
+
+    X-Forwarded-For is client-controllable, so trusting it blindly lets an
+    attacker spoof a fresh IP per request and dodge the lockout. Only honour XFF
+    when the DIRECT connection is a trusted proxy (config.TRUSTED_PROXIES), and
+    take the LAST hop XFF added (the proxy's view of the real client), not the
+    first (which the client can inject). Otherwise use the direct peer IP.
+    """
+    peer = request.client.host if request.client else "unknown"
+    if peer in config.TRUSTED_PROXIES:
+        xff = request.headers.get("x-forwarded-for")
+        if xff:
+            hops = [h.strip() for h in xff.split(",") if h.strip()]
+            if hops:
+                return hops[-1]
+    return peer
 
 
 @app.middleware("http")
@@ -206,8 +217,8 @@ async def add_session(request: Request):
     date = body.get("date") or ""
     try:
         rating = int(body.get("rating"))
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="rating 0-5 required")
+    except (TypeError, ValueError) as e:
+        raise HTTPException(status_code=400, detail="rating 0-5 required") from e
     return sessions.add(spot_id, date, rating, body.get("notes", ""))
 
 

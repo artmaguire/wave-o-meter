@@ -44,7 +44,7 @@ def _measured(station: str, start: str, end: str) -> dict[datetime, float]:
         f"time<={end}T23:59:59Z",
     ]
     url = f"{ERDDAP_CSV}?" + "&".join(urllib.parse.quote(c, safe=",") for c in q)
-    raw = openmeteo._get_client().get(url).text
+    raw = openmeteo.http_client().get(url).text
     rows = list(csv.reader(io.StringIO(raw)))
     out: dict[datetime, list[float]] = {}
     for r in rows[2:]:  # skip name + unit rows
@@ -66,12 +66,12 @@ def _forecast_series(lat, lon, model, start, end) -> dict[datetime, float]:
         "models": model, "start_date": start, "end_date": end, "timezone": "GMT",
     }
     url = f"{config.MARINE_API}?{urllib.parse.urlencode(params)}"
-    payload = openmeteo._get(url)
+    payload = openmeteo.get_json(url)
     h = payload.get("hourly", {})
     times = [datetime.fromisoformat(t).replace(tzinfo=timezone.utc)
              for t in h.get("time", [])]
     vals = h.get(f"wave_height_{model}") or h.get("wave_height") or []
-    return {t: float(v) for t, v in zip(times, vals) if v is not None}
+    return {t: float(v) for t, v in zip(times, vals, strict=False) if v is not None}
 
 
 def _stats(pred: dict, obs: dict):

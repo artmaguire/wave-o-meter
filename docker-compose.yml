@@ -15,5 +15,6 @@ services:
       - COOKIE_SECURE=1        # cookie only sent over HTTPS
       # secret + answer come from .env (gitignored) so they're not in the repo:
       - GATE_SECRET=${GATE_SECRET:?set GATE_SECRET in .env}
-      - GATE_ANSWER=${GATE_ANSWER:-Dmitrius}
+      - GATE_ANSWER=${GATE_ANSWER:?set GATE_ANSWER in .env}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-}
     restart: unless-stopped    # comes back after a reboot

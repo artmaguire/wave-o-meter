@@ -9,7 +9,9 @@ Put this behind a TLS-terminating reverse proxy for a public URL.
 Design:
   * The answer is checked SERVER-SIDE only; it is never sent to the browser.
   * On success we set an HMAC-signed, expiring session cookie. The signing key
-    is derived from GATE_SECRET (env) so tokens can't be forged.
+    comes from GATE_SECRET (env); if unset, a random per-process key is used
+    (tokens survive only until restart) — the key is NEVER derived from the
+    answer, so a known answer cannot forge tokens.
   * Guesses are rate-limited per client IP: GATE_MAX_TRIES then a lockout.
 """
 
@@ -17,25 +19,34 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 import os
+import secrets
 import time
+
+log = logging.getLogger("waveometer.auth")
 
 # Config (env-overridable). The answer defaults to the owner's; override in prod.
 GATE_ENABLED = os.environ.get("GATE_ENABLED", "1") not in ("0", "false", "False")
 GATE_QUESTION = os.environ.get("GATE_QUESTION", "What is the name of my surfboard?")
-_GATE_ANSWER = os.environ.get("GATE_ANSWER", "Dmitrius")
+# No committed default — the real answer lives only in the server .env.
+_GATE_ANSWER = os.environ.get("GATE_ANSWER", "")
 GATE_MAX_TRIES = int(os.environ.get("GATE_MAX_TRIES", "3"))
 GATE_LOCKOUT_S = int(os.environ.get("GATE_LOCKOUT_S", "900"))   # 15 min
 GATE_SESSION_S = int(os.environ.get("GATE_SESSION_S", str(30 * 24 * 3600)))  # 30d
 COOKIE_NAME = "wom_gate"
 
-# Signing key: from GATE_SECRET if set, else derived from the answer + a salt.
-# Deriving from the answer means a fresh deploy still has a stable key without
-# extra config, but setting GATE_SECRET explicitly is recommended.
-_SECRET = os.environ.get(
-    "GATE_SECRET",
-    hashlib.sha256(("wom-gate-v1::" + _GATE_ANSWER).encode()).hexdigest(),
-).encode()
+# Signing key. Prefer GATE_SECRET (stable across restarts). If unset, generate a
+# random per-process key so tokens are never forgeable from a known answer — the
+# tradeoff is sessions drop on restart. NEVER derive the key from the answer.
+_env_secret = os.environ.get("GATE_SECRET", "").strip()
+if _env_secret:
+    _SECRET = _env_secret.encode()
+else:
+    _SECRET = secrets.token_bytes(32)
+    if GATE_ENABLED:
+        log.warning("GATE_SECRET not set — using a random per-process key; "
+                    "gate sessions will not survive restarts. Set GATE_SECRET.")
 
 # In-memory per-IP attempt tracking: ip -> (fail_count, first_fail_ts).
 _attempts: dict[str, tuple[int, float]] = {}
@@ -73,7 +84,10 @@ def clear(ip: str) -> None:
 
 
 def check_answer(answer: str) -> bool:
-    # constant-time compare on normalised values
+    # Fail closed if no answer is configured (misconfiguration shouldn't let
+    # everyone in). Constant-time compare on normalised values.
+    if not _GATE_ANSWER:
+        return False
     return hmac.compare_digest(_norm(answer), _norm(_GATE_ANSWER))
 
 

@@ -35,7 +35,7 @@ _client: httpx.Client | None = None
 _client_lock = threading.Lock()
 
 
-def _get_client() -> httpx.Client:
+def http_client() -> httpx.Client:
     # Double-checked locking: the client is created once and shared across the
     # scheduler + request threads. httpx.Client is thread-safe once built; the
     # lock only guards construction so concurrent first calls don't race.
@@ -58,12 +58,12 @@ def _get_client() -> httpx.Client:
     return _client
 
 
-def _get(url: str) -> dict:
+def get_json(url: str) -> dict:
     """GET with connection-level retries + an app-level retry for slow links."""
     last_err = None
     for attempt in range(config.HTTP_RETRIES):
         try:
-            resp = _get_client().get(url)
+            resp = http_client().get(url)
             resp.raise_for_status()
             payload = resp.json()
             if isinstance(payload, dict) and payload.get("error"):
@@ -128,7 +128,7 @@ def fetch_marine(lat: float, lon: float) -> dict:
         "timezone": config.TIMEZONE,
     }
     url = f"{config.MARINE_API}?{urllib.parse.urlencode(params)}"
-    return _get(url)
+    return get_json(url)
 
 
 def fetch_base(lat: float, lon: float) -> dict:
@@ -150,7 +150,7 @@ def fetch_base(lat: float, lon: float) -> dict:
         "timezone": config.TIMEZONE,
     }
     url = f"{config.MARINE_API}?{urllib.parse.urlencode(params)}"
-    return _get(url)
+    return get_json(url)
 
 
 def fetch_wind(lat: float, lon: float) -> dict:
@@ -166,7 +166,7 @@ def fetch_wind(lat: float, lon: float) -> dict:
         "timezone": config.TIMEZONE,
     }
     url = f"{config.FORECAST_API}?{urllib.parse.urlencode(params)}"
-    return _get(url)
+    return get_json(url)
 
 
 def _series(hourly: dict, key: str, n: int) -> list[float | None]:
@@ -205,7 +205,7 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
     b_times = _parse_times(b_hourly.get("time", []))
 
     def _aligned(key):
-        by_t = dict(zip(b_times, _series(b_hourly, key, len(b_times))))
+        by_t = dict(zip(b_times, _series(b_hourly, key, len(b_times)), strict=False))
         return [by_t.get(t) for t in times]
 
     sea_level = _aligned("sea_level_height_msl")
@@ -228,12 +228,12 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
     w_times = _parse_times(w_hourly.get("time", []))
     w_speed = _series(w_hourly, "wind_speed_10m", len(w_times))
     w_dir = _series(w_hourly, "wind_direction_10m", len(w_times))
-    wind_speed_by_t = dict(zip(w_times, w_speed))
-    wind_dir_by_t = dict(zip(w_times, w_dir))
+    wind_speed_by_t = dict(zip(w_times, w_speed, strict=False))
+    wind_dir_by_t = dict(zip(w_times, w_dir, strict=False))
     wind_speed = [wind_speed_by_t.get(t) for t in times]
     wind_direction = [wind_dir_by_t.get(t) for t in times]
     w_gust = _series(w_hourly, "wind_gusts_10m", len(w_times))
-    gust_by_t = dict(zip(w_times, w_gust))
+    gust_by_t = dict(zip(w_times, w_gust, strict=False))
     wind_gust = [gust_by_t.get(t) for t in times]
 
     # daily block keyed by date -> {sunrise, sunset, weather_code, uv}
@@ -291,4 +291,4 @@ def fetch_weather(lat: float, lon: float) -> dict:
         "timezone": config.TIMEZONE,
     }
     url = f"{config.FORECAST_API}?{urllib.parse.urlencode(params)}"
-    return _get(url)
+    return get_json(url)

@@ -67,9 +67,16 @@ CORS_ORIGINS = [
     ).split(",") if o.strip()
 ]
 
-# Set the gate cookie's Secure flag (send only over HTTPS). Enable in prod when
-# behind a TLS reverse proxy: COOKIE_SECURE=1.
-COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") not in ("0", "false", "False")
+# Gate cookie Secure flag (send only over HTTPS). Defaults ON — safer for a
+# public deployment; set COOKIE_SECURE=0 only for local plain-http dev.
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") not in ("0", "false", "False")
+
+# Reverse proxies whose X-Forwarded-For we trust for client-IP rate limiting.
+# Empty by default (use the direct peer IP). Set to your proxy's IP(s),
+# comma-separated, e.g. TRUSTED_PROXIES="127.0.0.1,172.18.0.1".
+TRUSTED_PROXIES = {
+    p.strip() for p in os.environ.get("TRUSTED_PROXIES", "").split(",") if p.strip()
+}
 
 # County display order for the home page (SDD §11): Clare first.
 COUNTY_ORDER = ["Clare", "Sligo", "Mayo", "Kerry"]

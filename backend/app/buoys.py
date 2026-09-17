@@ -31,7 +31,7 @@ def _latest(station: str) -> dict | None:
     q = (f'{ERDDAP}?time,WaveHeight,WavePeriod,MeanWaveDirection,SeaTemperature'
          f'&station_id=%22{station}%22&orderByMax(%22time%22)')
     try:
-        payload = openmeteo._get(q)  # reuse the resilient httpx client
+        payload = openmeteo.get_json(q)  # reuse the resilient httpx client
         rows = payload["table"]["rows"]
         if not rows:
             return None
@@ -54,12 +54,18 @@ def latest_readings(force: bool = False) -> list[dict]:
     now = time.time()
     if not force and _cache is not None and (now - _cache_ts) < _TTL_S:
         return _cache
+    # Fetch buoys concurrently (independent requests) rather than serially.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=len(BUOYS)) as ex:
+        results = list(ex.map(lambda b: (_latest(b[0]), b[1]), BUOYS))
     readings = []
-    for station, label in BUOYS:
-        r = _latest(station)
+    for r, label in results:
         if r:
             r["label"] = label
             readings.append(r)
+    # keep the configured buoy order
+    order = {label: i for i, (_, label) in enumerate(BUOYS)}
+    readings.sort(key=lambda x: order.get(x["label"], 99))
     _cache = readings
     _cache_ts = now
     return readings

@@ -111,7 +111,7 @@ def build_forecast(spot: Spot) -> dict:
     """Fetch + compute the full per-spot forecast payload."""
     fc = openmeteo.fetch_spot_forecast(spot.lat, spot.lon)
 
-    sea = {t: h for t, h in zip(fc.times, fc.sea_level) if h is not None}
+    sea = {t: h for t, h in zip(fc.times, fc.sea_level, strict=False) if h is not None}
     tide_state = tide_mod.classify_day(sea)
 
     hours = []

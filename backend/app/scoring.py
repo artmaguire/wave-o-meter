@@ -186,8 +186,7 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     # (~90°) is workable; only genuine onshore (>135°) is bad. A cosine-based
     # curve keeps side-shore reasonable instead of the old harsh linear drop.
     # 0° -> 1.0, 90° -> ~0.6, 180° -> ~0.15.
-    import math as _m
-    dir_q = 0.25 + 0.75 * (0.5 * (1 + _m.cos(_m.radians(off_dist))))
+    dir_q = 0.25 + 0.75 * (0.5 * (1 + math.cos(math.radians(off_dist))))
 
     # Wind strength gate: light wind barely matters (clean either way); the
     # direction penalty only really bites as wind strengthens.
