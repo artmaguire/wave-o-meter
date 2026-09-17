@@ -119,6 +119,26 @@ def test_reef_needs_longer_period():
     assert reef_pq < beach_pq
 
 
+def test_get_spot_unknown_returns_none():
+    assert get_spot("does-not-exist") is None
+
+
+def test_flat_when_below_workable_min():
+    lahinch = get_spot("lahinch")  # workable from ~0.8 m
+    r = scoring.score_hour(
+        lahinch, wave_height_m=0.2, wave_period_s=12, wave_from_deg=270,
+        wind_speed_ms=4, wind_from_deg=70, tide_state="mid")
+    assert r.flat is True and r.score == 0.0
+
+
+def test_score_clamped_0_to_5():
+    lahinch = get_spot("lahinch")
+    r = scoring.score_hour(
+        lahinch, wave_height_m=2.5, wave_period_s=14, wave_from_deg=270,
+        wind_speed_ms=6, wind_from_deg=70, tide_state="low")
+    assert 0.0 <= r.score <= 5.0
+
+
 if __name__ == "__main__":
     # allow running without pytest
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

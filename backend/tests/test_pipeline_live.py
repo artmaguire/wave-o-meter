@@ -20,7 +20,7 @@ def main():
           f"first {fc.times[0]:%Y-%m-%d %H:%M} last {fc.times[-1]:%Y-%m-%d %H:%M}")
 
     # tide classification
-    sea = {t: h for t, h in zip(fc.times, fc.sea_level) if h is not None}
+    sea = {t: h for t, h in zip(fc.times, fc.sea_level, strict=False) if h is not None}
     tide_state = tide.classify_day(sea)
 
     # score first 6 hours + a couple of long-range hours

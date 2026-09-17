@@ -55,6 +55,12 @@ Protected by a shared-answer gate (see `docs/SDD.md`). Config via `.env`:
 The gate is only meaningful over **HTTPS** — put it behind a TLS reverse proxy
 for a public URL.
 
+## Tests
+```bash
+cd backend && . .venv/bin/activate
+python3 tests/run_all.py   # 39 offline tests (scoring, auth, engine)
+```
+
 ## Notes
 - **Fonts:** drop licensed Linear Sans woff2 files in `frontend/static/fonts/`
   (see the README there). Falls back to system sans otherwise.
