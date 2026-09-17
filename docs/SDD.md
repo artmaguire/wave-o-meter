@@ -353,7 +353,7 @@ services:
   surf:
     build: .
     ports:
-      - "8080:8080"            # access at http://<home-server-ip>:8080
+      - "6767:8080"            # access at http://<home-server-ip>:6767
     volumes:
       - ./data:/app/data       # spots.json + SQLite persist across restarts
     environment:
@@ -369,7 +369,7 @@ services:
   server is, so opening the URL just works.
 - **On-open refresh:** loading the page triggers the freshness check in §5, so
   you always land on current conditions + the next 12 days without manual action.
-- **Access:** `http://<home-server-ip>:8080` on the LAN. Optionally a hostname
+- **Access:** `http://<home-server-ip>:6767` on the LAN. Optionally a hostname
   via local DNS / hosts entry.
 - **Security gate (unchanged):** LAN-only in v1, no auth. Exposing beyond the LAN
   (e.g. port-forward or public DNS) MUST first go behind a reverse proxy
@@ -469,7 +469,7 @@ Backend modules: `config`, `spots`, `scoring`, `tide`, `confidence`,
 ### Deployment
 - Single container: multi-stage Dockerfile builds the SvelteKit static site, the
   Python image serves it via FastAPI (mounts `/_app`, SPA fallback to
-  index.html). `docker-compose.yml`: port 8080, `./data` volume, env config,
+  index.html). `docker-compose.yml`: host port 6767, `./data` volume, env config,
   `restart: unless-stopped`. LAN-only, no auth (see §3/§12 security gate).
 
 ### Post-review hardening (4-pass code review)

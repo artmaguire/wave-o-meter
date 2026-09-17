@@ -3,7 +3,7 @@ services:
     build: .
     container_name: waveometer
     ports:
-      - "8080:8080"            # access at http://<home-server-ip>:8080
+      - "6767:8080"            # access at http://<home-server-ip>:6767
     volumes:
       - ./data:/app/data       # spots.json + SQLite cache persist across restarts
     environment:

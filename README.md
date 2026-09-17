@@ -41,7 +41,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8080
 
 ## Docker (for the home server, later)
 ```bash
-docker compose up --build      # http://<host-ip>:8080
+docker compose up --build      # http://<host-ip>:6767
 ```
 
 ## Notes
