@@ -102,6 +102,7 @@ def _spot_meta(spot: Spot) -> dict:
         "break_type": spot.break_type, "skill": spot.skill,
         "tide_pref": spot.tide, "hazards": spot.hazards, "notes": spot.notes,
         "orientation_verified": spot.orientation_verified,
+        "links": spot.links,
     }
 
 

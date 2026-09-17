@@ -30,6 +30,7 @@ class Spot:
     notes: str = ""
     aka: str | None = None
     orientation_verified: bool = False
+    links: dict[str, str] = field(default_factory=dict)
 
     @property
     def is_reef(self) -> bool:
@@ -57,6 +58,7 @@ def _to_spot(raw: dict) -> Spot:
         notes=raw.get("notes", ""),
         aka=raw.get("aka"),
         orientation_verified=bool(raw.get("orientation_verified", False)),
+        links=raw.get("links", {}),
     )
 
 

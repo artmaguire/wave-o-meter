@@ -174,6 +174,24 @@
       {/if}
     </section>
 
+    {#if spot.links && (spot.links.surfline || spot.links.surf_forecast)}
+      <section class="compare">
+        <h2>Compare forecasts</h2>
+        <div class="links">
+          {#if spot.links.surfline}
+            <a href={spot.links.surfline} target="_blank" rel="noopener noreferrer">
+              Surfline ↗
+            </a>
+          {/if}
+          {#if spot.links.surf_forecast}
+            <a href={spot.links.surf_forecast} target="_blank" rel="noopener noreferrer">
+              surf-forecast.com ↗
+            </a>
+          {/if}
+        </div>
+      </section>
+    {/if}
+
     <p class="foot muted">
       Forecasts open-ocean conditions, not the exact breaking wave on the bank.
       A strong guide, not a guarantee.
@@ -183,6 +201,12 @@
 
 <style>
   .back { display: inline-block; color: var(--text-dim); margin: var(--sp-3) 0; }
+  .compare { margin-top: var(--sp-4); }
+  .compare h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .compare .links { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+  .compare a { background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 9px 16px; font-size: .9rem; font-weight: 500;
+    color: var(--accent); }
   header { margin-bottom: var(--sp-4); }
   h1 { font-size: 1.5rem; }
   .tags { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); flex-wrap: wrap; }
