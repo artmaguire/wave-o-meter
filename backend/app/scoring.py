@@ -95,11 +95,11 @@ def _period_quality(period_s: float, spot: Spot) -> float:
     period to score well; beach breaks are more forgiving.
     """
     if spot.is_reef:
-        # reef: poor below ~9s, excellent >=13s
-        lo_s, hi_s, floor = 9.0, 13.0, 0.4
+        # reef: wants groundswell — modest below ~8s, excellent >=12s
+        lo_s, hi_s, floor = 8.0, 12.0, 0.55
     else:
-        # beach: poor below ~6s, excellent >=12s
-        lo_s, hi_s, floor = 6.0, 12.0, 0.6
+        # beach: more forgiving — modest below ~6s, excellent >=11s
+        lo_s, hi_s, floor = 6.0, 11.0, 0.65
     if period_s <= lo_s:
         return floor
     if period_s >= hi_s:
@@ -178,26 +178,40 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     window (wind coming FROM the land).
     """
     center, _ = window_center_and_half(spot.optimal_wind_dir)
-    off_dist = angular_distance(wind_from_deg, center)  # 0..180
-    offshoreness = 1.0 - off_dist / 180.0               # 1 offshore .. 0 onshore
+    off_dist = angular_distance(wind_from_deg, center)  # 0 offshore .. 180 onshore
 
-    if wind_speed_ms <= 3:
-        speed_w = 0.15
-    elif wind_speed_ms >= 12:
-        speed_w = 1.0
+    # Direction quality: offshore (0-45° off centre) is ideal; side-shore
+    # (~90°) is workable; only genuine onshore (>135°) is bad. A cosine-based
+    # curve keeps side-shore reasonable instead of the old harsh linear drop.
+    # 0° -> 1.0, 90° -> ~0.6, 180° -> ~0.15.
+    import math as _m
+    dir_q = 0.15 + 0.85 * (0.5 * (1 + _m.cos(_m.radians(off_dist))))
+
+    # Wind strength gate: light wind barely matters (clean either way); the
+    # direction penalty only really bites as wind strengthens.
+    #   <=5 m/s  : glassy/light — direction almost irrelevant (factor ~0.9-1.0)
+    #   >=14 m/s : strong — direction dominates (onshore ruins it)
+    if wind_speed_ms <= 5:
+        strength = 0.15
+    elif wind_speed_ms >= 14:
+        strength = 1.0
     else:
-        speed_w = 0.15 + 0.85 * (wind_speed_ms - 3) / 9.0
+        strength = 0.15 + 0.85 * (wind_speed_ms - 5) / 9.0
 
-    base = (1.0 - speed_w) * 0.9 + speed_w * offshoreness
+    # Blend: calm sits near-ideal (0.95); as wind builds, pull toward dir_q.
+    base = (1.0 - strength) * 0.95 + strength * dir_q
 
-    # Gust penalty: gust spread beyond ~5 m/s over the mean = bumpy; cap the
-    # penalty at ~0.2 off the factor.
+    # Very strong wind is unpleasant even offshore (spray, hard to paddle).
+    if wind_speed_ms >= 16:
+        base *= 0.85
+
+    # Gust penalty: gust spread beyond ~6 m/s over the mean = bumpy.
     if gust_ms is not None and gust_ms > wind_speed_ms:
         spread = gust_ms - wind_speed_ms
-        gust_pen = min(0.2, max(0.0, (spread - 5.0) / 10.0 * 0.2))
+        gust_pen = min(0.15, max(0.0, (spread - 6.0) / 10.0 * 0.15))
         base *= (1.0 - gust_pen)
 
-    return max(0.0, base)
+    return max(0.0, min(1.0, base))
 
 
 def _tide_factor(tide_state: str, spot: Spot) -> float:

@@ -131,8 +131,8 @@
       "break_type": "reef",
       "skill": "advanced",
       "optimal_swell_dir": [
-        305,
-        360
+        280,
+        350
       ],
       "optimal_wind_dir": [
         180,
