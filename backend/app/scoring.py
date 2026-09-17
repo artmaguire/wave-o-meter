@@ -114,8 +114,10 @@ def _size_quality(height_m: float, spot: Spot) -> float:
     if height_m < lo:
         return 0.0
     if height_m <= hi:
-        # ramp from decent (0.5) at min to full (1.0) at the top of range
-        return 0.5 + 0.5 * (height_m - lo) / max(0.1, (hi - lo))
+        # ramp from good (0.7) at the workable minimum to full (1.0) partway up
+        # the range — a solid in-range swell shouldn't be capped at "half".
+        frac = (height_m - lo) / max(0.1, (hi - lo))
+        return min(1.0, 0.7 + 0.5 * frac)
     # above the workable max: decay — by ~1.5x the max it's largely unsurfable
     over = (height_m - hi) / max(0.5, hi * 0.5)
     return max(0.15, 1.0 - over)
@@ -185,21 +187,21 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     # curve keeps side-shore reasonable instead of the old harsh linear drop.
     # 0° -> 1.0, 90° -> ~0.6, 180° -> ~0.15.
     import math as _m
-    dir_q = 0.15 + 0.85 * (0.5 * (1 + _m.cos(_m.radians(off_dist))))
+    dir_q = 0.25 + 0.75 * (0.5 * (1 + _m.cos(_m.radians(off_dist))))
 
     # Wind strength gate: light wind barely matters (clean either way); the
     # direction penalty only really bites as wind strengthens.
     #   <=5 m/s  : glassy/light — direction almost irrelevant (factor ~0.9-1.0)
     #   >=14 m/s : strong — direction dominates (onshore ruins it)
-    if wind_speed_ms <= 5:
-        strength = 0.15
-    elif wind_speed_ms >= 14:
+    if wind_speed_ms <= 6:
+        strength = 0.1
+    elif wind_speed_ms >= 15:
         strength = 1.0
     else:
-        strength = 0.15 + 0.85 * (wind_speed_ms - 5) / 9.0
+        strength = 0.1 + 0.9 * (wind_speed_ms - 6) / 9.0
 
-    # Blend: calm sits near-ideal (0.95); as wind builds, pull toward dir_q.
-    base = (1.0 - strength) * 0.95 + strength * dir_q
+    # Blend: calm is ideal (1.0); as wind builds, pull toward dir_q.
+    base = (1.0 - strength) * 1.0 + strength * dir_q
 
     # Very strong wind is unpleasant even offshore (spray, hard to paddle).
     if wind_speed_ms >= 16:
