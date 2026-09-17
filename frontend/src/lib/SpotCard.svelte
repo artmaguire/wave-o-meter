@@ -19,15 +19,21 @@
     if (!n) return '';
     const hs = days.map((d) => d.height_max ?? d.height_min ?? 0);
     const max = Math.max(1, ...hs);
-    // x at each day-column centre (0..100); y: taller swell -> higher (lower y).
-    // Keep it a gentle band: amplitude ~55% of height, floor offset so small
-    // days still show some wave.
-    const pts = hs.map((h, i) => {
+    // Continuous filled band across ALL days: a tall floor (55% of the box)
+    // keeps it visible even on small-swell days, with a gentle undulation on
+    // top tracing the swell trend — reads as one flowing timeline, not columns.
+    const FLOOR = 55;      // % of box height always filled
+    const AMP = 30;        // extra % added at the biggest swell
+    const y = (h) => 100 - (FLOOR + AMP * (h / max));
+    // Points span the full 0..100 width incl. the two edges so the band reaches
+    // both ends (no gap at the start/finish).
+    const pts = [`0,${y(hs[0]).toFixed(1)}`];
+    hs.forEach((h, i) => {
       const x = ((i + 0.5) / n) * 100;
-      const y = 100 - (18 + 0.55 * (h / max) * 100);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
+      pts.push(`${x.toFixed(1)},${y(h).toFixed(1)}`);
     });
-    return `0,100 0,${(100 - 18).toFixed(1)} ${pts.join(' ')} 100,${(100 - 18).toFixed(1)} 100,100`;
+    pts.push(`100,${y(hs[n - 1]).toFixed(1)}`);
+    return `0,100 ${pts.join(' ')} 100,100`;
   });
 </script>
 
@@ -96,9 +102,9 @@
     -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .scroller::-webkit-scrollbar { display: none; }
   /* wave silhouette behind the day columns, scrolls with them */
-  .wave-track { position: relative; display: inline-flex; }
+  .wave-track { position: relative; display: inline-flex; width: max-content; }
   .wave { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wave polygon { fill: color-mix(in srgb, var(--accent) 24%, var(--bg-elev)); }
+  .wave polygon { fill: color-mix(in srgb, var(--accent) 30%, var(--bg-elev)); }
   .cells { position: relative; z-index: 1; display: flex; gap: var(--sp-3);
     padding: var(--sp-2) 0; }
 
