@@ -64,18 +64,6 @@
       <button onclick={load}>Retry</button>
     </div>
   {:else if data}
-    {#if data.best_now}
-      <a class="bestnow" href="/spot/{data.best_now.id}"
-         style="border-color:{ratingColor(data.best_now.score)}">
-        <span class="bn-label">Best right now</span>
-        <span class="bn-spot">{data.best_now.name}</span>
-        <span class="bn-score" style="background:{ratingColor(data.best_now.score)}">
-          {Math.round(data.best_now.score)}
-        </span>
-        <span class="bn-rating">{data.best_now.label}</span>
-      </a>
-    {/if}
-
     <!-- shared calendar: scrolls all spots in sync -->
     {#if headerDays.length}
       <div class="calbar">
@@ -193,16 +181,6 @@
     justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
   h1 { font-size: 1.7rem; }
   header p { margin: var(--sp-2) 0 0; }
-  .bestnow { display: flex; align-items: center; gap: var(--sp-3);
-    background: var(--bg-card); border: 1px solid var(--border); border-left-width: 4px;
-    border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); }
-  .bn-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
-    color: var(--text-dim); }
-  .bn-spot { font-weight: 600; font-size: 1.05rem; }
-  .bn-score { margin-left: auto; width: 34px; height: 34px; border-radius: 8px;
-    color: #04101f; font-weight: 700; display: inline-flex; align-items: center;
-    justify-content: center; }
-  .bn-rating { font-size: .9rem; font-weight: 500; }
   .summary-btn { background: transparent; color: var(--accent);
     border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
     border-radius: 999px; padding: 7px 14px; font: inherit; font-size: .85rem;

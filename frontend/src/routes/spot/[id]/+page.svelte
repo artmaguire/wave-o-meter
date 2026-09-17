@@ -165,7 +165,7 @@
         {#if selDay.wetsuit}<span class="cond">🤿 {selDay.wetsuit}</span>{/if}
         {#if selDay.sunrise}<span class="cond">🌅 {sunLabel(selDay.sunrise)}</span>{/if}
         {#if selDay.sunset}<span class="cond">🌇 {sunLabel(selDay.sunset)}</span>{/if}
-        {#if selDay.uv != null}<span class="cond">UV {Math.round(selDay.uv)}</span>{/if}
+        {#if selDay.uv != null}<span class="cond">☀ UV {Math.round(selDay.uv)}</span>{/if}
       </div>
       {#if anyLongRange}
         <p class="lr">Long-range outlook — a single model, treat as a rough trend.</p>

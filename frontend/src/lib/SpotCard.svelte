@@ -1,5 +1,5 @@
 <script>
-  import { ratingColor, fmtFtRange, CONF_COLOR, CONF_SYMBOL } from './format.js';
+  import { ratingColor, fmtFtRange, fmtFt, CONF_COLOR, CONF_SYMBOL } from './format.js';
   import { scrollSync } from './scrollSync.js';
   // props: spot overview { id, name, display_name, current, days[7] }
   let { spot } = $props();
@@ -10,6 +10,7 @@
     steady: { icon: '→', cls: 'flat', title: 'holding steady' }
   };
   const trend = $derived(TREND[spot.trend] ?? null);
+  const swell = $derived((spot.current ?? {}).swell ?? null);
 </script>
 
 <a class="card" href="/spot/{spot.id}" aria-label="View {spot.name} forecast">
@@ -18,6 +19,14 @@
     {#if trend}<span class="trend {trend.cls}" title={trend.title}>{trend.icon}</span>{/if}
     {#if spot.stale}<span class="flag" title="showing last cached">· cached</span>{/if}
   </h3>
+  {#if swell}
+    <div class="nowline">
+      <span class="nowh">{fmtFt(swell.height_m)}</span>
+      {#if swell.period_s}<span class="nowp">@ {swell.period_s}s</span>{/if}
+      {#if swell.direction_compass}<span class="nowd">{swell.direction_compass}</span>{/if}
+      <span class="nowlabel muted">now</span>
+    </div>
+  {/if}
   {#if spot.pending}
     <p class="pending muted">Loading forecast…</p>
   {:else}
@@ -52,6 +61,10 @@
   .trend.up { color: var(--r4); }
   .trend.down { color: var(--r2); }
   .trend.flat { color: var(--text-dim); }
+  .nowline { display: flex; align-items: baseline; gap: 6px; margin: -4px 0 var(--sp-3); }
+  .nowh { font-size: 1rem; font-weight: 600; }
+  .nowp, .nowd { font-size: .82rem; color: var(--text-dim); }
+  .nowlabel { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: auto; }
 
   /* synced horizontal scroller; hide the scrollbar (the top calendar shows position) */
   .scroller { display: flex; gap: var(--sp-3); overflow-x: auto;
