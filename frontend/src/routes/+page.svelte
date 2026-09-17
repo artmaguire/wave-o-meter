@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { getOverview, getSummary, getAccuracy } from '$lib/api.js';
   import SpotCard from '$lib/SpotCard.svelte';
-  import { scrollSync } from '$lib/scrollSync.js';
   import {
     RATING_LABELS, ratingColor, qualitySymbol,
     CONF_SYMBOL, fmtDayShort
@@ -67,15 +66,12 @@
     <!-- shared calendar: scrolls all spots in sync -->
     {#if headerDays.length}
       <div class="calbar">
-        <div class="calspacer"></div>
-        <div class="calscroll" use:scrollSync={'calendar'}>
-          {#each headerDays as d}
-            <div class="calday">
-              <span class="dow">{fmtDayShort(d)}</span>
-              <span class="dnum">{new Date(d + 'T12:00:00').getDate()}</span>
-            </div>
-          {/each}
-        </div>
+        {#each headerDays as d}
+          <div class="calday">
+            <span class="dow">{fmtDayShort(d)}</span>
+            <span class="dnum">{new Date(d + 'T12:00:00').getDate()}</span>
+          </div>
+        {/each}
       </div>
     {/if}
 
@@ -178,7 +174,7 @@
 
 <style>
   header { padding: var(--sp-4) 0 var(--sp-4); display: flex;
-    justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+    justify-content: space-between; align-items: center; gap: var(--sp-3); }
   h1 { font-size: 1.7rem; }
   header p { margin: var(--sp-2) 0 0; }
   .summary-btn { background: transparent; color: var(--accent);
@@ -226,21 +222,13 @@
   .legend-list li { margin-bottom: var(--sp-2); }
 
 
-  /* shared day column width, used by calbar + every SpotCard scroller */
-  :global(:root) { --day-col: 84px; }
-
   .calbar { position: sticky; top: 0; z-index: 5; background: var(--bg);
-    padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2);
-    display: flex; }
-  .calspacer { flex: 0 0 0; }
-  .calscroll { display: flex; gap: var(--sp-3); overflow-x: auto;
-    scrollbar-width: none; flex: 1; }
-  .calscroll::-webkit-scrollbar { display: none; }
-  .calday { flex: 0 0 var(--day-col); display: flex; flex-direction: column;
-    align-items: center; }
-  .dow { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em;
+    padding: var(--sp-3) var(--sp-4) var(--sp-2); margin-bottom: var(--sp-2);
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .calday { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .dow { font-size: .7rem; text-transform: uppercase; letter-spacing: .03em;
     color: var(--text-dim); }
-  .dnum { font-size: 1.35rem; font-weight: 600; }
+  .dnum { font-size: 1.05rem; font-weight: 600; }
 
   .county { font-size: .95rem; text-transform: uppercase; letter-spacing: .08em;
     color: var(--text-dim); margin: var(--sp-5) 0 var(--sp-3); }
