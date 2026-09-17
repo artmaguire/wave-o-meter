@@ -52,7 +52,7 @@ def _in_window(bearing: float, window: tuple[float, float]) -> bool:
     return bearing >= start or bearing <= end
 
 
-def _window_center_and_half(window: tuple[float, float]) -> tuple[float, float]:
+def window_center_and_half(window: tuple[float, float]) -> tuple[float, float]:
     start, end = window
     span = (end - start) % 360.0
     half = span / 2.0
@@ -117,7 +117,7 @@ def _swell_dir_factor(swell_from_deg: float, spot: Spot) -> float:
     """1.0 inside the optimal window, decaying with angular distance outside."""
     if _in_window(swell_from_deg, spot.optimal_swell_dir):
         return 1.0
-    _, half = _window_center_and_half(spot.optimal_swell_dir)
+    _, half = window_center_and_half(spot.optimal_swell_dir)
     # distance from the nearest window edge
     start, end = spot.optimal_swell_dir
     dist = min(angular_distance(swell_from_deg, start),
@@ -135,7 +135,7 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     optimal_wind_dir is the offshore bearing window (wind coming FROM the land).
     """
     # How offshore is the wind? 1.0 = dead offshore, 0 = dead onshore.
-    center, _ = _window_center_and_half(spot.optimal_wind_dir)
+    center, _ = window_center_and_half(spot.optimal_wind_dir)
     off_dist = angular_distance(wind_from_deg, center)  # 0..180
     offshoreness = 1.0 - off_dist / 180.0               # 1 offshore .. 0 onshore
 

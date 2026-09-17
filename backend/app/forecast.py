@@ -6,12 +6,14 @@ compute confidence -> build the JSON payloads the API serves, and cache them.
 
 from __future__ import annotations
 
-import math
+import logging
 from datetime import datetime, timezone
 
 from . import cache, confidence, config, dayparts, openmeteo, scoring, summary as summary_mod
 from . import tide as tide_mod
 from .spots import Spot, get_spot, load_spots
+
+log = logging.getLogger("waveometer.forecast")
 
 _COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
@@ -25,7 +27,7 @@ def compass(deg: float | None) -> str | None:
 
 def _wind_relation(wind_from: float, spot: Spot) -> str:
     """offshore / cross-shore / onshore relative to the spot (SDD 11)."""
-    center, _ = scoring._window_center_and_half(spot.optimal_wind_dir)
+    center, _ = scoring.window_center_and_half(spot.optimal_wind_dir)
     dist = scoring.angular_distance(wind_from, center)
     if dist <= 45:
         return "offshore"
@@ -142,7 +144,7 @@ def refresh_all() -> int:
                 fut.result()
                 n += 1
             except Exception as e:  # noqa: BLE001
-                print(f"[refresh] {spot.id} failed: {e}")
+                log.warning("refresh %s failed: %s", spot.id, e)
     return n
 
 
@@ -177,7 +179,7 @@ def build_overview() -> dict:
                 entry["current"] = None
                 entry["days"] = []
                 entry["pending"] = True
-                print(f"[overview] {spot.id} pending: {e}")
+                log.warning("overview %s pending: %s", spot.id, e)
         counties.setdefault(spot.county, []).append(entry)
 
     ordered = []
@@ -207,21 +209,6 @@ def _current_hour(hours: list[dict]) -> dict | None:
     return best
 
 
-def _today_strip(hours: list[dict], step: int = 2) -> list[dict]:
-    """A light sparkline for the home card: score + wave height every `step`
-    hours for the first 24h, so the card can draw a swell-height background."""
-    strip = []
-    for h in hours[:24:step]:
-        swell = h.get("swell") or {}
-        strip.append({
-            "time": h["time"],
-            "score": h.get("score"),
-            "label": h.get("label"),
-            "height_m": swell.get("height_m"),
-        })
-    return strip
-
-
 # central-ish west-coast point for the regional weather narrative
 _WX_LAT, _WX_LON = 53.4, -9.9
 
@@ -243,6 +230,6 @@ def build_summary() -> dict:
     try:
         weather = openmeteo.fetch_weather(_WX_LAT, _WX_LON)
     except Exception as e:  # noqa: BLE001
-        print(f"[summary] weather fetch failed (narrative degrades): {e}")
+        log.warning("summary weather fetch failed (narrative degrades): %s", e)
 
     return summary_mod.build_summary(pairs, weather=weather)

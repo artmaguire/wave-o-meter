@@ -13,6 +13,7 @@ reads also refresh on staleness (on-open behaviour).
 
 from __future__ import annotations
 
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -26,20 +27,25 @@ from fastapi.staticfiles import StaticFiles
 from . import cache, config, forecast
 from .spots import get_spot, load_spots
 
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+log = logging.getLogger("waveometer.main")
+
 _scheduler: BackgroundScheduler | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     cache.init_db()
-    # Warm the cache once at startup so the first visit is instant.
-    try:
-        forecast.refresh_all()
-    except Exception as e:  # noqa: BLE001
-        print(f"[startup] initial refresh failed (will retry on demand): {e}")
 
     global _scheduler
     _scheduler = BackgroundScheduler(daemon=True)
+    # Warm the cache in the scheduler thread (not inline) so the app becomes
+    # ready immediately instead of blocking on ~20 upstream calls. Reads that
+    # arrive before warm-up completes refresh on demand (on-open behaviour).
+    _scheduler.add_job(forecast.refresh_all, "date", id="warmup")
     _scheduler.add_job(
         forecast.refresh_all,
         "interval",
@@ -56,10 +62,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Wave-o-meter", version="0.1", lifespan=lifespan)
 
-# LAN-only single-user app; permissive CORS is fine here (SDD 3 security note).
+# In production the SvelteKit app is served by this same backend (same origin),
+# so no cross-origin access is needed. CORS is only for local dev (Vite on :5173
+# proxying to :8080). Default to an explicit dev allowlist rather than "*";
+# override with CORS_ORIGINS (comma-separated) if needed.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=config.CORS_ORIGINS,
     allow_methods=["GET"],
     allow_headers=["*"],
 )

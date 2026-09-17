@@ -11,6 +11,7 @@ Uses stdlib urllib to keep the data layer dependency-free.
 
 from __future__ import annotations
 
+import threading
 import time
 import urllib.parse
 from dataclasses import dataclass
@@ -30,21 +31,27 @@ class OpenMeteoError(RuntimeError):
 # pooling. local_address="0.0.0.0" forces IPv4 (many WSL/home-server networks
 # resolve Open-Meteo to IPv6 but have no IPv6 route -> "Network is unreachable").
 _client: httpx.Client | None = None
+_client_lock = threading.Lock()
 
 
 def _get_client() -> httpx.Client:
+    # Double-checked locking: the client is created once and shared across the
+    # scheduler + request threads. httpx.Client is thread-safe once built; the
+    # lock only guards construction so concurrent first calls don't race.
     global _client
     if _client is None:
-        transport = httpx.HTTPTransport(
-            retries=config.HTTP_RETRIES,
-            local_address="0.0.0.0" if config.FORCE_IPV4 else None,
-        )
-        _client = httpx.Client(
-            timeout=httpx.Timeout(config.HTTP_TIMEOUT_S, connect=10.0),
-            transport=transport,
-            headers={"User-Agent": "wave-o-meter/0.1"},
-            follow_redirects=True,
-        )
+        with _client_lock:
+            if _client is None:
+                transport = httpx.HTTPTransport(
+                    retries=config.HTTP_RETRIES,
+                    local_address="0.0.0.0" if config.FORCE_IPV4 else None,
+                )
+                _client = httpx.Client(
+                    timeout=httpx.Timeout(config.HTTP_TIMEOUT_S, connect=10.0),
+                    transport=transport,
+                    headers={"User-Agent": "wave-o-meter/0.1"},
+                    follow_redirects=True,
+                )
     return _client
 
 

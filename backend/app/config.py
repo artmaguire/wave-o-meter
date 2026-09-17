@@ -54,5 +54,14 @@ REFRESH_CONCURRENCY = int(os.environ.get("REFRESH_CONCURRENCY", "5"))
 # resolve Open-Meteo to IPv6 but have no IPv6 route ("Network is unreachable").
 FORCE_IPV4 = os.environ.get("FORCE_IPV4", "1") not in ("0", "false", "False")
 
+# CORS: prod serves the SPA same-origin so none is strictly needed; these cover
+# the Vite dev server. Override with CORS_ORIGINS="https://host" (comma-sep).
+CORS_ORIGINS = [
+    o.strip() for o in os.environ.get(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",") if o.strip()
+]
+
 # County display order for the home page (SDD §11): Clare first.
 COUNTY_ORDER = ["Clare", "Sligo", "Mayo", "Kerry"]

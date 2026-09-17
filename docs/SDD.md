@@ -472,6 +472,21 @@ Backend modules: `config`, `spots`, `scoring`, `tide`, `confidence`,
   index.html). `docker-compose.yml`: port 8080, `./data` volume, env config,
   `restart: unless-stopped`. LAN-only, no auth (see §3/§12 security gate).
 
+### Post-review hardening (4-pass code review)
+- `summary.build_summary` split into focused section builders; magic thresholds
+  named as constants; "good day" count is now data-driven (was substring-matching
+  its own generated prose).
+- Swapped `print()` diagnostics for the `logging` module (configurable LOG_LEVEL).
+- Removed dead code (`_today_strip`, unused `math` import).
+- httpx client singleton now lock-guarded (double-checked) for thread safety.
+- Promoted `scoring.window_center_and_half` to public (was a cross-module private
+  helper access from forecast.py).
+- CORS tightened from `*` to a configurable dev allowlist (`CORS_ORIGINS`); prod
+  serves the SPA same-origin so none is needed.
+- Startup confirmed non-blocking (warm-up runs in the scheduler thread).
+- Noted but deferred (personal project, owner opted out): unit tests for
+  `confidence`, `tide`, `dayparts`, `summary`.
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from
