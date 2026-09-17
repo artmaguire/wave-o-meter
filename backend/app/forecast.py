@@ -77,6 +77,21 @@ def _wave_components(fc, i) -> dict:
         "swell_dir_compass": compass(fc.swell_direction[i]),
         "wind_wave_height_m": _rnd(wh),
         "dominant": dominant,
+        "secondary": _secondary_swell(fc, i),
+    }
+
+
+def _secondary_swell(fc, i) -> dict | None:
+    """A meaningful secondary swell train (a second swell from another
+    direction), if present (>=0.4 m)."""
+    h = fc.sec_swell_height[i]
+    if h is None or h < 0.4:
+        return None
+    return {
+        "height_m": _rnd(h),
+        "period_s": _rnd(fc.sec_swell_period[i], 1),
+        "dir_deg": _rnd(fc.sec_swell_direction[i], 0),
+        "dir_compass": compass(fc.sec_swell_direction[i]),
     }
 
 
@@ -244,6 +259,7 @@ def build_overview() -> dict:
         try:
             fc = get_forecast(spot)
             entry["current"] = _current_hour(fc["hours"])
+            entry["trend"] = _rating_trend(fc["hours"])
             days = fc.get("days") or dayparts.build_days(fc["hours"])
             entry["days"] = days[:7]
             entry["pending"] = False
@@ -272,9 +288,22 @@ def build_overview() -> dict:
         if county not in config.COUNTY_ORDER:
             ordered.append({"county": county, "spots": spots})
 
+    # best spot right now (across all), for the home-page headline
+    best_now = None
+    for c in ordered:
+        for sp in c["spots"]:
+            cur = sp.get("current") or {}
+            sc = cur.get("score")
+            if sc is None:
+                continue
+            if best_now is None or sc > best_now["score"]:
+                best_now = {"id": sp["id"], "name": sp["name"],
+                            "score": sc, "label": cur.get("label")}
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "counties": ordered,
+        "best_now": best_now,
     }
 
 
@@ -288,6 +317,25 @@ def _current_hour(hours: list[dict]) -> dict | None:
         if best is None or abs((t - now).total_seconds()) < abs((best_dt - now).total_seconds()):
             best, best_dt = h, t
     return best
+
+
+def _rating_trend(hours: list[dict]) -> str:
+    """improving / steady / dropping over the next ~6h from now."""
+    now = datetime.now(timezone.utc)
+    future = [(datetime.fromisoformat(h["time"]), h.get("score"))
+              for h in hours if h.get("score") is not None
+              and datetime.fromisoformat(h["time"]) >= now]
+    future.sort()
+    if len(future) < 2:
+        return "steady"
+    cur = future[0][1]
+    window = [s for _, s in future[:7]]
+    later = max(window[1:]) if len(window) > 1 else cur
+    if later - cur >= 0.6:
+        return "improving"
+    if cur - min(window[1:]) >= 0.6:
+        return "dropping"
+    return "steady"
 
 
 # central-ish west-coast point for the regional weather narrative

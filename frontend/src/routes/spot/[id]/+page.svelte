@@ -222,6 +222,12 @@
           <span class="star">★</span>
           <div>
             <strong>Best around {fmtTime(bestHour.time)}</strong> — {bestReason}
+            {#if bestHour.components?.secondary}
+              <div class="secswell muted">
+                + secondary swell {mToFt(bestHour.components.secondary.height_m).toFixed(1)}ft
+                {bestHour.components.secondary.period_s}s from {bestHour.components.secondary.dir_compass}
+              </div>
+            {/if}
           </div>
         </div>
       {/if}
@@ -378,6 +384,7 @@
     border: 1px solid color-mix(in srgb, var(--r5) 40%, transparent);
     border-radius: var(--radius); font-size: .88rem; line-height: 1.45; }
   .bestbox .star { color: var(--r5); font-size: 1rem; }
+  .secswell { font-size: .8rem; margin-top: 3px; }
 
   .knowledge { margin-top: var(--sp-6); background: var(--bg-card);
     border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }

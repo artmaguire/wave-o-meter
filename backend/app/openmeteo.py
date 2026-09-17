@@ -104,6 +104,9 @@ class SpotForecast:
     wind_wave_height: list[float | None]
     sea_temp: list[float | None]       # °C
     wind_gust: list[float | None]      # m/s
+    sec_swell_height: list[float | None]
+    sec_swell_period: list[float | None]
+    sec_swell_direction: list[float | None]
     # daily (date-keyed): sunrise/sunset ISO, weather_code, uv
     daily: dict[str, dict]
     # spread models: model_id -> wave_height series aligned to `times`
@@ -136,6 +139,8 @@ def fetch_base(lat: float, lon: float) -> dict:
         "hourly": ",".join([
             "sea_level_height_msl",
             "swell_wave_height", "swell_wave_period", "swell_wave_direction",
+            "secondary_swell_wave_height", "secondary_swell_wave_period",
+            "secondary_swell_wave_direction",
             "wind_wave_height",
             "sea_surface_temperature",
         ]),
@@ -207,6 +212,9 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
     swell_direction = _aligned("swell_wave_direction")
     wind_wave_height = _aligned("wind_wave_height")
     sea_temp = _aligned("sea_surface_temperature")
+    sec_swell_height = _aligned("secondary_swell_wave_height")
+    sec_swell_period = _aligned("secondary_swell_wave_period")
+    sec_swell_direction = _aligned("secondary_swell_wave_direction")
 
     spread_heights: dict[str, list[float | None]] = {}
     for model in config.ALL_WAVE_MODELS:
@@ -257,6 +265,9 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
         wind_wave_height=wind_wave_height,
         sea_temp=sea_temp,
         wind_gust=wind_gust,
+        sec_swell_height=sec_swell_height,
+        sec_swell_period=sec_swell_period,
+        sec_swell_direction=sec_swell_direction,
         daily=daily,
         spread_heights=spread_heights,
     )

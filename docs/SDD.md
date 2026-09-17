@@ -571,6 +571,15 @@ Tests: 11 (was 7) — added cleanliness, gust, too-big, and reef-period cases.
 The "best time" reason and the home "how to read" legend explain these; the
 per-spot Sea explainer moved into that central legend.
 
+### Home headline, trends & secondary swell (v1.5)
+- **"Best right now"** headline on the home page — the top-scoring spot across all
+  10 at the current hour, colour-banded, links straight to it.
+- **Trend arrows** per spot card (↗ improving / → steady / ↘ dropping) comparing
+  the current rating to the next ~6 hours.
+- **Secondary swell train**: Open-Meteo `secondary_swell_wave_*` — when a
+  meaningful second swell (>=0.4 m) is present, it's shown in the best-time box
+  ("+ secondary swell 3ft 9s from SW").
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from

@@ -4,10 +4,20 @@
   // props: spot overview { id, name, display_name, current, days[7] }
   let { spot } = $props();
   const days = $derived((spot.days ?? []).slice(0, 7));
+  const TREND = {
+    improving: { icon: '↗', cls: 'up', title: 'improving over the next few hours' },
+    dropping: { icon: '↘', cls: 'down', title: 'dropping over the next few hours' },
+    steady: { icon: '→', cls: 'flat', title: 'holding steady' }
+  };
+  const trend = $derived(TREND[spot.trend] ?? null);
 </script>
 
 <a class="card" href="/spot/{spot.id}" aria-label="View {spot.name} forecast">
-  <h3>{spot.name}{#if spot.stale}<span class="flag" title="showing last cached">· cached</span>{/if}</h3>
+  <h3>
+    {spot.name}
+    {#if trend}<span class="trend {trend.cls}" title={trend.title}>{trend.icon}</span>{/if}
+    {#if spot.stale}<span class="flag" title="showing last cached">· cached</span>{/if}
+  </h3>
   {#if spot.pending}
     <p class="pending muted">Loading forecast…</p>
   {:else}
@@ -38,6 +48,10 @@
     margin-bottom: var(--sp-3);
   }
   h3 { font-size: 1.1rem; margin-bottom: var(--sp-3); }
+  .trend { font-size: .95rem; margin-left: 4px; }
+  .trend.up { color: var(--r4); }
+  .trend.down { color: var(--r2); }
+  .trend.flat { color: var(--text-dim); }
 
   /* synced horizontal scroller; hide the scrollbar (the top calendar shows position) */
   .scroller { display: flex; gap: var(--sp-3); overflow-x: auto;
