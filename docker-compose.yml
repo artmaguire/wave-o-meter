@@ -10,4 +10,10 @@ services:
       - FORECAST_DAYS=12
       - CACHE_STALE_MIN=60     # on-open refresh threshold (minutes)
       - REFRESH_INTERVAL_MIN=360   # background refresh cadence (6h)
+      # --- access gate (behind HTTPS reverse proxy) ---
+      - GATE_ENABLED=1
+      - COOKIE_SECURE=1        # cookie only sent over HTTPS
+      # secret + answer come from .env (gitignored) so they're not in the repo:
+      - GATE_SECRET=${GATE_SECRET:?set GATE_SECRET in .env}
+      - GATE_ANSWER=${GATE_ANSWER:-Dmitrius}
     restart: unless-stopped    # comes back after a reboot

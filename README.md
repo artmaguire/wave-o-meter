@@ -39,10 +39,21 @@ uvicorn app.main:app --host 127.0.0.1 --port 8080
 # open http://127.0.0.1:8080  (whole app on one port)
 ```
 
-## Docker (for the home server, later)
+## Docker (home server)
 ```bash
-docker compose up --build      # http://<host-ip>:6767
+cp .env.example .env           # then edit: set a random GATE_SECRET
+docker compose up -d --build   # http://<host-ip>:6767
 ```
+
+### Access gate
+Protected by a shared-answer gate (see `docs/SDD.md`). Config via `.env`:
+- `GATE_ANSWER` — the answer (default: Dmitrius)
+- `GATE_SECRET` — random string for signing session cookies (REQUIRED; generate
+  with `python3 -c "import secrets;print(secrets.token_urlsafe(48))"`)
+- `COOKIE_SECURE=1` — set when behind HTTPS (recommended for any public URL)
+
+The gate is only meaningful over **HTTPS** — put it behind a TLS reverse proxy
+for a public URL.
 
 ## Notes
 - **Fonts:** drop licensed Linear Sans woff2 files in `frontend/static/fonts/`
