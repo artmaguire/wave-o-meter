@@ -1,5 +1,6 @@
 <script>
   import { ratingColor, fmtFtRange, fmtFt, CONF_COLOR, CONF_SYMBOL } from './format.js';
+  import { scrollSync } from './scrollSync.js';
   // props: spot overview { id, name, display_name, current, days[7] }
   let { spot } = $props();
   const days = $derived((spot.days ?? []).slice(0, 7));
@@ -53,23 +54,25 @@
   {#if spot.pending}
     <p class="pending muted">Loading forecast…</p>
   {:else}
-    <div class="wave-track">
-      <svg class="wave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polygon points={wavePoints} />
-      </svg>
-      <div class="cells">
-        {#each days as day}
-          <div class="cell">
-            <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
-            <span class="bars">
-              {#each day.parts as p}
-                <span class="bar" style="background:{ratingColor(p.score)}"></span>
-              {/each}
-            </span>
-            <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
-              title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
-          </div>
-        {/each}
+    <div class="scroller" use:scrollSync={'calendar'}>
+      <div class="wave-track">
+        <svg class="wave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon points={wavePoints} />
+        </svg>
+        <div class="cells">
+          {#each days as day}
+            <div class="cell">
+              <span class="ft">{fmtFtRange(day.height_min, day.height_max)}</span>
+              <span class="bars">
+                {#each day.parts as p}
+                  <span class="bar" style="background:{ratingColor(p.score)}"></span>
+                {/each}
+              </span>
+              <span class="conf" style="color:{CONF_COLOR[day.parts[1]?.confidence] ?? 'var(--text-dim)'}"
+                title="confidence">{CONF_SYMBOL[day.parts[1]?.confidence] ?? '·'}</span>
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
   {/if}
@@ -94,18 +97,23 @@
   .nowp, .nowd { font-size: .82rem; color: var(--text-dim); }
   .nowlabel { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: auto; }
 
-  /* wave silhouette behind a full-width 7-day grid (fits screen, no scroll) */
-  .wave-track { position: relative; width: 100%; }
+  /* synced horizontal scroller; hide the scrollbar (the top calendar shows position) */
+  .scroller { display: flex; gap: var(--sp-3); overflow-x: auto;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .scroller::-webkit-scrollbar { display: none; }
+  /* wave silhouette behind the day columns, scrolls with them */
+  .wave-track { position: relative; display: inline-flex; width: max-content; }
   .wave { position: absolute; inset: 0; width: 100%; height: 100%; }
   .wave polygon { fill: color-mix(in srgb, var(--accent) 30%, var(--bg-elev)); }
-  .cells { position: relative; z-index: 1; display: grid;
-    grid-template-columns: repeat(7, 1fr); gap: 4px; padding: var(--sp-2) 0; }
+  .cells { position: relative; z-index: 1; display: flex; gap: var(--sp-3);
+    padding: var(--sp-2) 0; }
 
-  .cell { display: flex; flex-direction: column; align-items: center; gap: 5px;
-    min-width: 0; }
-  .ft { font-size: .72rem; font-weight: 600; white-space: nowrap; }
-  .bars { display: flex; gap: 2px; width: 100%; justify-content: center; }
-  .bar { flex: 1; min-width: 0; height: 10px; border-radius: 2px; }
+  /* fixed column width so cells line up with the shared day header */
+  .cell { flex: 0 0 var(--day-col, 64px); display: flex; flex-direction: column;
+    align-items: center; gap: 5px; }
+  .ft { font-size: .82rem; font-weight: 600; white-space: nowrap; }
+  .bars { display: flex; gap: 3px; width: 100%; justify-content: center; }
+  .bar { flex: 1; height: 11px; border-radius: 3px; }
   .conf { font-size: .72rem; line-height: 1; }
   .pending { font-size: .85rem; padding: var(--sp-2) 0; }
   .flag { font-size: .7rem; color: var(--text-dim); margin-left: 6px; font-weight: 400; }
