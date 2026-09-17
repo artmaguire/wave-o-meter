@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { getOverview, getSummary, getBuoys, getAccuracy } from '$lib/api.js';
+  import { getOverview, getSummary, getAccuracy } from '$lib/api.js';
   import SpotCard from '$lib/SpotCard.svelte';
   import { scrollSync } from '$lib/scrollSync.js';
   import {
@@ -18,23 +18,12 @@
     catch (e) { error = e.message; }
     finally { loading = false; }
   }
-  // Live measured buoys (ground truth alongside the forecast).
-  let buoys = $state([]);
-  async function loadBuoys() {
-    try { buoys = (await getBuoys()).buoys ?? []; } catch { buoys = []; }
-  }
   let accuracy = $state(null);
   async function loadAccuracy() {
     try { accuracy = await getAccuracy(); } catch { accuracy = null; }
   }
   onMount(load);
-  onMount(loadBuoys);
   onMount(loadAccuracy);
-
-  function buoyTime(iso) {
-    const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
 
   // Shared calendar header dates (from the first available spot).
   const headerDays = $derived.by(() => {
@@ -134,27 +123,6 @@
       <p class="muted small">Forecasts open-ocean conditions, not the exact wave on
         the sandbank — a strong guide, not a guarantee.</p>
     </details>
-
-    {#if buoys.length}
-      <section class="buoys">
-        <h2 class="county">Measured offshore now</h2>
-        <div class="buoy-row">
-          {#each buoys as b}
-            <div class="buoy">
-              <div class="bt">{b.label?.split(' — ')[0] ?? b.station}</div>
-              <div class="bh">{(b.wave_height_m ?? 0).toFixed(1)}<span>m</span></div>
-              <div class="bmeta">
-                {b.wave_period_s ? b.wave_period_s.toFixed(0) + 's' : '–'}
-                {#if b.sea_temp_c} · {b.sea_temp_c.toFixed(0)}°C{/if}
-              </div>
-              <div class="bwhen">{buoyTime(b.time)}</div>
-            </div>
-          {/each}
-        </div>
-        <p class="muted small">Real readings from Marine Institute buoys — open-ocean
-          swell reaching the coast (not the surf height at the beach).</p>
-      </section>
-    {/if}
 
     {#if accuracy?.buoys?.length}
       <section class="accuracy">
