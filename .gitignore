@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# App data / cache
+data/*.sqlite3
+data/*.sqlite3-*
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+build/
+dist/
+.env
+.env.*

@@ -1,0 +1,257 @@
+<script>
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+  import { getForecast } from '$lib/api.js';
+  import Rating from '$lib/Rating.svelte';
+  import DayCard from '$lib/DayCard.svelte';
+  import {
+    ratingColor, dirArrow, fmtTime, fmtDayFull, fmtFt, fmtFtRange,
+    CONF_LABEL, CONF_COLOR, mToFt
+  } from '$lib/format.js';
+
+  let data = $state(null);
+  let error = $state(null);
+  let loading = $state(true);
+  let selDate = $state(null); // selected day (YYYY-MM-DD)
+
+  const id = $derived($page.params.id);
+
+  async function load() {
+    loading = true; error = null;
+    try {
+      data = await getForecast(id);
+      selDate = data.days?.[0]?.date ?? null; // default to today
+    } catch (e) {
+      error = e.message;
+    } finally {
+      loading = false;
+    }
+  }
+  onMount(load);
+
+  const spot = $derived(data?.spot);
+  const days = $derived(data?.days ?? []);
+  const selDay = $derived(days.find((d) => d.date === selDate) ?? null);
+  // hours belonging to the selected day
+  // Surfable daylight window only: 6am–11pm (no middle-of-the-night rows).
+  const selHours = $derived(
+    (data?.hours ?? []).filter((h) => {
+      if (h.time.slice(0, 10) !== selDate || h.missing) return false;
+      const hr = new Date(h.time).getUTCHours();
+      return hr >= 6 && hr <= 23;
+    })
+  );
+  const anyLongRange = $derived(selHours.some((h) => h.confidence === 'long_range'));
+
+  // Single best time to surf that day: the highest-scoring hour, but only if
+  // it's genuinely worth it (Fair+). This already accounts for tide/wind because
+  // the score does. Marked with a star in the table.
+  const bestHour = $derived.by(() => {
+    let best = null;
+    for (const h of selHours) {
+      if (h.score == null || h.score < 3) continue;
+      if (!best || h.score > best.score) best = h;
+    }
+    return best;
+  });
+  const bestHourTime = $derived(bestHour?.time ?? null);
+  const isBest = (h) => h.time === bestHourTime;
+
+  // Explain WHY this hour is the pick: name the conditions doing the work,
+  // from the score breakdown (swell direction, wind, tide factors 0-1).
+  const bestReason = $derived.by(() => {
+    const h = bestHour;
+    if (!h) return '';
+    const b = h.breakdown ?? {};
+    const bits = [];
+    if (h.wind?.relation === 'offshore') bits.push('offshore wind grooming the faces');
+    else if (h.wind?.relation === 'cross-shore') bits.push('manageable cross-shore wind');
+    if ((b.swell_direction ?? 0) >= 0.9) bits.push(`swell straight from the ${h.swell.direction_compass}`);
+    if ((b.tide ?? 0) >= 0.9) bits.push(`a favourable ${h.tide.state} tide`);
+    if ((h.swell?.period_s ?? 0) >= 11) bits.push(`long-period groundswell (${h.swell.period_s}s)`);
+    if (!bits.length) bits.push('the best mix of size, wind and tide of the day');
+    return bits.join(', ') + '.';
+  });
+</script>
+
+<div class="container">
+  <a class="back" href="/">← All spots</a>
+
+  {#if loading}
+    <p class="muted">Loading…</p>
+  {:else if error}
+    <p class="err">Couldn't load: {error} <button onclick={load}>Retry</button></p>
+  {:else if data}
+    <header>
+      <div>
+        <h1>{spot.name}</h1>
+        <div class="tags">
+          <span class="tag">{spot.county}</span>
+          <span class="tag">{spot.break_type}</span>
+          <span class="tag">{spot.skill}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Surfline-style horizontal day scrubber -->
+    <h2 class="sec">12-day forecast</h2>
+    <div class="dayscroll" role="tablist" aria-label="Select a day">
+      {#each days as day}
+        <DayCard
+          {day}
+          full
+          selected={day.date === selDate}
+          onselect={(d) => selDate = d.date}
+        />
+      {/each}
+    </div>
+
+    {#if selDay}
+      <div class="dayhead">
+        <strong>{fmtDayFull(selDay.date)}</strong>
+        <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
+      </div>
+      {#if anyLongRange}
+        <p class="lr">Long-range outlook — a single model, treat as a rough trend.</p>
+      {/if}
+
+      <!-- hourly detail table (horizontally scrollable so nothing is cut off) -->
+      <div class="table-scroll">
+        <div class="table" role="table">
+          <div class="thead" role="row">
+            <span class="c-time">Time</span>
+            <span class="c-surf">Surf</span>
+            <span class="c-swell">Swell</span>
+            <span class="c-wind">Wind</span>
+            <span class="c-tide">Tide</span>
+          </div>
+          {#each selHours as h}
+            <div class="trow" role="row" class:best={isBest(h)}>
+              <span class="c-time">
+                {#if isBest(h)}<span class="star" title="best time to surf">★</span>{/if}
+                {fmtTime(h.time)}
+              </span>
+              <span class="c-surf">
+                <span class="score" style="background:{ratingColor(h.score)}">{Math.round(h.score)}</span>
+                <span class="hgt">{mToFt(h.swell.height_m).toFixed(1)}<span class="unit">ft</span></span>
+              </span>
+              <span class="c-swell">
+                <span class="val">{h.swell.period_s}<span class="unit">s</span></span>
+                <span class="arrow" style="transform:{dirArrow(h.swell.direction_deg)}">↑</span>
+                <span class="sub">{h.swell.direction_compass}</span>
+              </span>
+              <span class="c-wind">
+                <span class="val">{Math.round(h.wind.speed_ms)}<span class="unit">m/s</span></span>
+                <span class="arrow" style="transform:{dirArrow(h.wind.direction_deg)}">↑</span>
+                <span class="sub rel-{h.wind.relation}">{h.wind.direction_compass}</span>
+              </span>
+              <span class="c-tide tstate">{h.tide.state}</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+      {#if !selHours.length}
+        <p class="muted empty">No hourly data for this day.</p>
+      {/if}
+      {#if bestHour}
+        <div class="bestbox">
+          <span class="star">★</span>
+          <div>
+            <strong>Best around {fmtTime(bestHour.time)}</strong> — {bestReason}
+          </div>
+        </div>
+      {/if}
+    {/if}
+
+    <!-- local knowledge -->
+    <section class="knowledge">
+      <h2>Local knowledge</h2>
+      {#if spot.notes}<p>{spot.notes}</p>{/if}
+      {#if spot.hazards}<p class="hazard">⚠ {spot.hazards}</p>{/if}
+      <p class="muted small">Prefers {spot.tide_pref} tide.</p>
+      {#if !spot.orientation_verified}
+        <p class="muted small">Orientation data for this spot is provisional.</p>
+      {/if}
+    </section>
+
+    <p class="foot muted">
+      Forecasts open-ocean conditions, not the exact breaking wave on the bank.
+      A strong guide, not a guarantee.
+    </p>
+  {/if}
+</div>
+
+<style>
+  .back { display: inline-block; color: var(--text-dim); margin: var(--sp-3) 0; }
+  header { margin-bottom: var(--sp-4); }
+  h1 { font-size: 1.5rem; }
+  .tags { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); flex-wrap: wrap; }
+  .tag { font-size: .72rem; text-transform: capitalize; background: var(--bg-elev);
+    color: var(--text-dim); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+
+  .sec { font-size: .95rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-dim); margin: var(--sp-4) 0 var(--sp-3); }
+
+  .dayscroll { display: flex; gap: var(--sp-2); overflow-x: auto;
+    -webkit-overflow-scrolling: touch; padding-bottom: var(--sp-2); }
+
+  .dayhead { display: flex; align-items: baseline; gap: var(--sp-3);
+    margin: var(--sp-5) 0 var(--sp-3); font-size: 1.1rem; }
+  .lr { font-size: .82rem; color: var(--text-dim); margin: 0 0 var(--sp-3); }
+
+  /* hourly table — horizontally scrollable so columns keep their size on mobile
+     instead of compressing/cutting off the tide column */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border); border-radius: var(--radius); }
+  .table { background: var(--bg-card); min-width: 460px; }
+  .thead, .trow { display: grid;
+    grid-template-columns: 4.5rem 5rem 5.5rem 6rem 3.5rem;
+    align-items: center; column-gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4); }
+  .thead { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-dim); border-bottom: 1px solid var(--border); }
+  /* every header label same size/weight (Surf was visually smaller before) */
+  .thead span { font-size: .7rem; font-weight: 600; }
+  .trow { border-bottom: 1px solid var(--border); }
+  .trow:last-child { border-bottom: 0; }
+
+  /* best hour: highlighted row */
+  .trow.best { background: color-mix(in srgb, var(--r5) 14%, transparent);
+    box-shadow: inset 3px 0 0 var(--r5); }
+  .star { color: var(--r5); font-size: .8rem; margin-right: 3px; }
+
+  .c-time { color: var(--text-dim); font-size: .85rem; white-space: nowrap; }
+
+  /* Surf cell: score chip + height */
+  .c-surf { display: flex; align-items: center; gap: var(--sp-2); }
+  .score { width: 30px; height: 30px; border-radius: 8px; color: #04101f;
+    font-weight: 700; font-size: 1rem; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .hgt { font-weight: 600; font-size: .95rem; white-space: nowrap; }
+
+  /* Swell + wind: value with a small trailing unit, arrow, compass */
+  .c-swell, .c-wind { display: flex; align-items: center; gap: 5px; font-size: .88rem; white-space: nowrap; }
+  .val { font-weight: 600; white-space: nowrap; }
+  .unit { font-weight: 400; color: var(--text-dim); font-size: .72rem; margin-left: 1px; }
+  .arrow { display: inline-block; color: var(--text-dim); font-size: .9rem; }
+  .sub { color: var(--text-dim); font-size: .8rem; }
+  .rel-offshore { color: var(--r4); } .rel-onshore { color: var(--r2); }
+  .rel-cross-shore { color: var(--r3); }
+  .c-tide { text-transform: capitalize; font-size: .85rem; color: var(--text-dim); }
+  .empty { padding: var(--sp-4); }
+  .bestbox { display: flex; gap: var(--sp-2); align-items: flex-start;
+    margin-top: var(--sp-3); padding: var(--sp-3);
+    background: color-mix(in srgb, var(--r5) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--r5) 40%, transparent);
+    border-radius: var(--radius); font-size: .88rem; line-height: 1.45; }
+  .bestbox .star { color: var(--r5); font-size: 1rem; }
+
+  .knowledge { margin-top: var(--sp-6); background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
+  .knowledge h2 { font-size: 1rem; margin-bottom: var(--sp-2); }
+  .knowledge p { margin: var(--sp-2) 0 0; line-height: 1.5; }
+  .hazard { color: var(--r2); }
+  .small { font-size: .78rem; }
+  .foot { font-size: .8rem; margin-top: var(--sp-5); line-height: 1.5; }
+  .err { color: var(--r1); }
+</style>

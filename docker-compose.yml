@@ -1,0 +1,13 @@
+services:
+  waveometer:
+    build: .
+    container_name: waveometer
+    ports:
+      - "8080:8080"            # access at http://<home-server-ip>:8080
+    volumes:
+      - ./data:/app/data       # spots.json + SQLite cache persist across restarts
+    environment:
+      - FORECAST_DAYS=12
+      - CACHE_STALE_MIN=60     # on-open refresh threshold (minutes)
+      - REFRESH_INTERVAL_MIN=360   # background refresh cadence (6h)
+    restart: unless-stopped    # comes back after a reboot
