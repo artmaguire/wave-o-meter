@@ -29,6 +29,38 @@ def _rnd(v, ndigits=2):
     return round(v, ndigits) if v is not None else None
 
 
+def wetsuit_for(sst: float | None) -> str | None:
+    """Rough wetsuit guidance for Irish water temps (°C)."""
+    if sst is None:
+        return None
+    if sst >= 19:
+        return "shorty / 2 mm"
+    if sst >= 16:
+        return "3/2 mm"
+    if sst >= 12:
+        return "4/3 mm + boots"
+    if sst >= 9:
+        return "5/4 mm + boots & gloves"
+    return "5/4 hooded + boots & gloves"
+
+
+def _weather_desc(code: int | None) -> str | None:
+    """WMO weather code -> short label + emoji."""
+    if code is None:
+        return None
+    m = {
+        0: "☀ Clear", 1: "🌤 Mostly clear", 2: "⛅ Partly cloudy", 3: "☁ Overcast",
+        45: "🌫 Fog", 48: "🌫 Fog",
+        51: "🌦 Light drizzle", 53: "🌦 Drizzle", 55: "🌧 Heavy drizzle",
+        61: "🌧 Light rain", 63: "🌧 Rain", 65: "🌧 Heavy rain",
+        66: "🌧 Freezing rain", 67: "🌧 Freezing rain",
+        71: "🌨 Light snow", 73: "🌨 Snow", 75: "❄ Heavy snow",
+        80: "🌦 Showers", 81: "🌧 Showers", 82: "⛈ Heavy showers",
+        95: "⛈ Thunderstorm", 96: "⛈ Thunderstorm", 99: "⛈ Thunderstorm",
+    }
+    return m.get(int(code), None)
+
+
 def _wave_components(fc, i) -> dict:
     """Groundswell vs wind-wave split — the key surf-quality signal.
     Clean long-period groundswell surfs far better than messy wind chop of the
@@ -99,7 +131,9 @@ def build_forecast(spot: Spot) -> dict:
                 "direction_deg": round(wd), "direction_compass": compass(wd),
             },
             "wind": {
-                "speed_ms": round(ws, 1), "direction_deg": round(wdir),
+                "speed_ms": round(ws, 1),
+                "gust_ms": _rnd(fc.wind_gust[i], 1),
+                "direction_deg": round(wdir),
                 "direction_compass": compass(wdir),
                 "relation": _wind_relation(wdir, spot),
             },
@@ -112,11 +146,28 @@ def build_forecast(spot: Spot) -> dict:
             "flat": r.flat,
         })
 
+    days = dayparts.build_days(hours)
+    # enrich each day with sun times + weather + a representative sea temp/wetsuit
+    for d in days:
+        dinfo = fc.daily.get(d["date"], {})
+        d["sunrise"] = dinfo.get("sunrise")
+        d["sunset"] = dinfo.get("sunset")
+        d["weather"] = _weather_desc(dinfo.get("weather_code"))
+        d["uv"] = dinfo.get("uv")
+        # sea temp: pick a midday hour on that date
+        day_hours = [h for h in hours
+                     if h["time"][:10] == d["date"] and not h.get("missing")]
+        sst = None
+        if day_hours:
+            sst = day_hours[len(day_hours) // 2].get("sea_temp_c")
+        d["sea_temp_c"] = sst
+        d["wetsuit"] = wetsuit_for(sst)
+
     return {
         "spot": _spot_meta(spot),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "hours": hours,
-        "days": dayparts.build_days(hours),
+        "days": days,
     }
 
 

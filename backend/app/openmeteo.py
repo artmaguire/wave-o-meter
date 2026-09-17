@@ -97,6 +97,9 @@ class SpotForecast:
     swell_direction: list[float | None]
     wind_wave_height: list[float | None]
     sea_temp: list[float | None]       # °C
+    wind_gust: list[float | None]      # m/s
+    # daily (date-keyed): sunrise/sunset ISO, weather_code, uv
+    daily: dict[str, dict]
     # spread models: model_id -> wave_height series aligned to `times`
     spread_heights: dict[str, list[float | None]]
 
@@ -138,11 +141,13 @@ def fetch_base(lat: float, lon: float) -> dict:
 
 
 def fetch_wind(lat: float, lon: float) -> dict:
-    """Wind speed + direction from the forecast API (m/s)."""
+    """Wind (m/s) hourly + daily sun times / weather code from the forecast API.
+    Daily sun times ride along on this same call — no extra request."""
     params = {
         "latitude": lat,
         "longitude": lon,
-        "hourly": "wind_speed_10m,wind_direction_10m",
+        "hourly": "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
+        "daily": "sunrise,sunset,weather_code,uv_index_max",
         "wind_speed_unit": "ms",
         "forecast_days": config.FORECAST_DAYS,
         "timezone": "GMT",
@@ -211,6 +216,24 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
     wind_dir_by_t = dict(zip(w_times, w_dir))
     wind_speed = [wind_speed_by_t.get(t) for t in times]
     wind_direction = [wind_dir_by_t.get(t) for t in times]
+    w_gust = _series(w_hourly, "wind_gusts_10m", len(w_times))
+    gust_by_t = dict(zip(w_times, w_gust))
+    wind_gust = [gust_by_t.get(t) for t in times]
+
+    # daily block keyed by date -> {sunrise, sunset, weather_code, uv}
+    w_daily = wind.get("daily", {})
+    daily = {}
+    for j, date in enumerate(w_daily.get("time", [])):
+        daily[date] = {
+            "sunrise": (w_daily.get("sunrise") or [None])[j]
+                       if j < len(w_daily.get("sunrise", [])) else None,
+            "sunset": (w_daily.get("sunset") or [None])[j]
+                      if j < len(w_daily.get("sunset", [])) else None,
+            "weather_code": (w_daily.get("weather_code") or [None])[j]
+                            if j < len(w_daily.get("weather_code", [])) else None,
+            "uv": (w_daily.get("uv_index_max") or [None])[j]
+                  if j < len(w_daily.get("uv_index_max", [])) else None,
+        }
 
     return SpotForecast(
         times=times,
@@ -225,6 +248,8 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
         swell_direction=swell_direction,
         wind_wave_height=wind_wave_height,
         sea_temp=sea_temp,
+        wind_gust=wind_gust,
+        daily=daily,
         spread_heights=spread_heights,
     )
 

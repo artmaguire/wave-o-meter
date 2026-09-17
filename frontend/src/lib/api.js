@@ -24,3 +24,23 @@ export async function submitGateAnswer(answer) {
   });
   return { status: res.status, ...(await res.json()) };
 }
+
+// --- sessions ---
+export const getSessions = (spotId) =>
+  getJSON(`/api/sessions${spotId ? '?spot_id=' + encodeURIComponent(spotId) : ''}`);
+export async function addSession(body) {
+  const res = await fetch('/api/sessions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('add session failed');
+  return res.json();
+}
+export async function deleteSession(id) {
+  const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('delete failed');
+  return res.json();
+}
+
+// --- accuracy scorecard ---
+export const getAccuracy = () => getJSON('/api/accuracy');

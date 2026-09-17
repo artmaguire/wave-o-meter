@@ -525,6 +525,23 @@ gate was added (`auth.py` + `/api/gate/*` + a `Gate.svelte` screen):
   local deploy; declined — ToS violation + Surfline bot-protection. Added the
   legitimate buoy + variable data instead.
 
+### Data-rich features (v1.2)
+- **Daylight-aware best time**: the "best time to surf" now only considers hours
+  between sunrise and sunset (from the forecast API's daily sun times), so it
+  never recommends a session in the dark (fixed the earlier 23:00 quirk).
+- **Wetsuit guidance**: sea-surface temperature → a suggested wetsuit (e.g.
+  "16°C → 3/2 mm"), shown in the day header.
+- **Weather + sun + UV**: WMO weather-code → emoji/label, sunrise/sunset, UV in
+  the day header conditions strip. Wind gusts added to the hourly wind cell.
+- **Model-accuracy scorecard** (`accuracy.py` + `/api/accuracy`): validates each
+  forecast model against MEASURED buoy Hs over a rolling 14-day window (MAE +
+  correlation), per offshore buoy (M6, M3). Shown on the home page — the
+  data-backed "which model to trust" signal. Cached daily.
+- **Session logging** (`sessions.py` + `/api/sessions`): log observed spot/date/
+  rating/notes; listed per spot on the detail page. This is the calibration
+  foundation (SDD §13) — the dataset that can tune forecasts to the owner's spots
+  over time. Behind the gate (writes).
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from

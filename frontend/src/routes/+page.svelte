@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { getOverview, getSummary, getBuoys } from '$lib/api.js';
+  import { getOverview, getSummary, getBuoys, getAccuracy } from '$lib/api.js';
   import SpotCard from '$lib/SpotCard.svelte';
   import { scrollSync } from '$lib/scrollSync.js';
   import {
@@ -23,8 +23,13 @@
   async function loadBuoys() {
     try { buoys = (await getBuoys()).buoys ?? []; } catch { buoys = []; }
   }
+  let accuracy = $state(null);
+  async function loadAccuracy() {
+    try { accuracy = await getAccuracy(); } catch { accuracy = null; }
+  }
   onMount(load);
   onMount(loadBuoys);
+  onMount(loadAccuracy);
 
   function buoyTime(iso) {
     const d = new Date(iso);
@@ -134,6 +139,27 @@
         </div>
         <p class="muted small">Real readings from Marine Institute buoys — open-ocean
           swell reaching the coast (not the surf height at the beach).</p>
+      </section>
+    {/if}
+
+    {#if accuracy?.buoys?.length}
+      <section class="accuracy">
+        <h2 class="county">Model accuracy (last {accuracy.buoys[0].window_days} days)</h2>
+        {#each accuracy.buoys as b}
+          <div class="acc-buoy">
+            <div class="acc-label">{b.label} <span class="muted">({b.buoy})</span></div>
+            {#each b.models as m}
+              <div class="acc-row" class:best={m.model === b.best}>
+                <span class="acc-model">{m.model.replace('_wam025','').replace('_wave','')}</span>
+                <span class="acc-mae">±{m.mae} m</span>
+                <span class="acc-corr">r={m.corr}</span>
+                {#if m.model === b.best}<span class="acc-tag">best</span>{/if}
+              </div>
+            {/each}
+          </div>
+        {/each}
+        <p class="muted small">How closely each forecast model matched the measured
+          buoy over the last {accuracy.buoys[0].window_days} days (lower ± = more accurate).</p>
       </section>
     {/if}
 
@@ -247,5 +273,17 @@
   .bh span { font-size: .8rem; font-weight: 400; color: var(--text-dim); }
   .bmeta { font-size: .8rem; color: var(--text-dim); }
   .bwhen { font-size: .7rem; color: var(--text-dim); margin-top: 2px; }
+  .accuracy { margin-top: var(--sp-6); }
+  .acc-buoy { background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: var(--sp-3); margin-bottom: var(--sp-2); }
+  .acc-label { font-size: .88rem; font-weight: 500; margin-bottom: var(--sp-2); }
+  .acc-row { display: flex; align-items: center; gap: var(--sp-3); font-size: .85rem;
+    padding: 3px 0; }
+  .acc-row.best { color: var(--r4); font-weight: 600; }
+  .acc-model { flex: 1; }
+  .acc-mae, .acc-corr { color: var(--text-dim); }
+  .acc-row.best .acc-mae, .acc-row.best .acc-corr { color: var(--r4); }
+  .acc-tag { font-size: .68rem; background: color-mix(in srgb, var(--r4) 22%, transparent);
+    color: var(--r4); padding: 1px 7px; border-radius: 999px; }
   .foot { font-size: .8rem; margin-top: var(--sp-6); line-height: 1.5; }
 </style>

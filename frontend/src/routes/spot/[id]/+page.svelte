@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { getForecast } from '$lib/api.js';
+  import { getForecast, getSessions, addSession, deleteSession } from '$lib/api.js';
   import Rating from '$lib/Rating.svelte';
   import DayCard from '$lib/DayCard.svelte';
   import {
@@ -29,6 +29,34 @@
   }
   onMount(load);
 
+  // --- session log ---
+  let logs = $state([]);
+  let logDate = $state(new Date().toISOString().slice(0, 10));
+  let logRating = $state(3);
+  let logNotes = $state('');
+  let logBusy = $state(false);
+  async function loadLogs() {
+    try { logs = (await getSessions(id)).sessions ?? []; } catch { logs = []; }
+  }
+  onMount(loadLogs);
+  async function saveLog(e) {
+    e.preventDefault();
+    if (logBusy) return;
+    logBusy = true;
+    try {
+      await addSession({ spot_id: id, date: logDate, rating: logRating, notes: logNotes });
+      logNotes = '';
+      await loadLogs();
+    } catch (_) { /* ignore */ } finally { logBusy = false; }
+  }
+  async function removeLog(sid) {
+    try { await deleteSession(sid); await loadLogs(); } catch (_) {}
+  }
+  function sunLabel(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
   const spot = $derived(data?.spot);
   const days = $derived(data?.days ?? []);
   const selDay = $derived(days.find((d) => d.date === selDate) ?? null);
@@ -48,13 +76,25 @@
     return withTemp[Math.floor(withTemp.length / 2)].sea_temp_c;
   });
 
-  // Single best time to surf that day: the highest-scoring hour, but only if
-  // it's genuinely worth it (Fair+). This already accounts for tide/wind because
-  // the score does. Marked with a star in the table.
+  // Daylight window for the selected day (from sunrise/sunset), so we never
+  // recommend a session in the dark.
+  function hourNum(iso) { return new Date(iso).getUTCHours(); }
+  const daylight = $derived.by(() => {
+    if (!selDay?.sunrise || !selDay?.sunset) return null;
+    return { rise: hourNum(selDay.sunrise), set: hourNum(selDay.sunset) };
+  });
+  function inDaylight(h) {
+    if (!daylight) return true;
+    const hr = hourNum(h.time);
+    return hr >= daylight.rise && hr <= daylight.set;
+  }
+
+  // Single best time to surf that day: highest-scoring DAYLIGHT hour that's
+  // genuinely worth it (Fair+). Score already accounts for tide/wind.
   const bestHour = $derived.by(() => {
     let best = null;
     for (const h of selHours) {
-      if (h.score == null || h.score < 3) continue;
+      if (h.score == null || h.score < 3 || !inDaylight(h)) continue;
       if (!best || h.score > best.score) best = h;
     }
     return best;
@@ -116,6 +156,14 @@
         <strong>{fmtDayFull(selDay.date)}</strong>
         <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
         {#if seaTemp != null}<span class="seatemp">🌡 {seaTemp.toFixed(0)}°C</span>{/if}
+      </div>
+      <!-- conditions strip: weather, wetsuit, daylight -->
+      <div class="condstrip">
+        {#if selDay.weather}<span class="cond">{selDay.weather}</span>{/if}
+        {#if selDay.wetsuit}<span class="cond">🤿 {selDay.wetsuit}</span>{/if}
+        {#if selDay.sunrise}<span class="cond">🌅 {sunLabel(selDay.sunrise)}</span>{/if}
+        {#if selDay.sunset}<span class="cond">🌇 {sunLabel(selDay.sunset)}</span>{/if}
+        {#if selDay.uv != null}<span class="cond">UV {Math.round(selDay.uv)}</span>{/if}
       </div>
       {#if anyLongRange}
         <p class="lr">Long-range outlook — a single model, treat as a rough trend.</p>
@@ -205,6 +253,45 @@
         </div>
       </section>
     {/if}
+
+    <!-- session log: your own observations (calibration foundation) -->
+    <section class="log">
+      <h2>Your sessions</h2>
+      <form class="logform" onsubmit={saveLog}>
+        <div class="logrow">
+          <input type="date" bind:value={logDate} aria-label="Session date" />
+          <select bind:value={logRating} aria-label="Your rating">
+            <option value={0}>0 – No surf</option>
+            <option value={1}>1 – Very poor</option>
+            <option value={2}>2 – Poor</option>
+            <option value={3}>3 – Fair</option>
+            <option value={4}>4 – Good</option>
+            <option value={5}>5 – Very good</option>
+          </select>
+        </div>
+        <input class="notes" type="text" bind:value={logNotes}
+          placeholder="Notes (tide, crowd, how it broke…)" maxlength="500" />
+        <button type="submit" disabled={logBusy}>{logBusy ? 'Saving…' : 'Log session'}</button>
+      </form>
+
+      {#if logs.length}
+        <ul class="loglist">
+          {#each logs as l}
+            <li>
+              <span class="lscore" style="background:{ratingColor(l.rating)}">{l.rating}</span>
+              <span class="ldate">{l.date}</span>
+              {#if l.notes}<span class="lnotes">{l.notes}</span>{/if}
+              <button class="ldel" onclick={() => removeLog(l.id)} aria-label="Delete">✕</button>
+            </li>
+          {/each}
+        </ul>
+        <p class="muted small">Logging what you actually see builds the data to tune
+          these forecasts to your spots over time.</p>
+      {:else}
+        <p class="muted small">No sessions logged yet. After you surf, log what it
+          was really like — over time this tunes the forecast to your spots.</p>
+      {/if}
+    </section>
 
     <p class="foot muted">
       Forecasts open-ocean conditions, not the exact breaking wave on the bank.
@@ -297,4 +384,31 @@
   .small { font-size: .78rem; }
   .foot { font-size: .8rem; margin-top: var(--sp-5); line-height: 1.5; }
   .err { color: var(--r1); }
+
+  .condstrip { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+  .cond { font-size: .8rem; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 10px; color: var(--text-dim); }
+
+  .log { margin-top: var(--sp-6); background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
+  .log h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .logform { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .logrow { display: flex; gap: var(--sp-2); }
+  .logform input, .logform select { flex: 1; min-width: 0; background: var(--bg-elev);
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px;
+    font: inherit; color: var(--text); }
+  .logform button { background: var(--accent); color: #04101f; border: 0;
+    border-radius: 8px; padding: 10px; font: inherit; font-weight: 600; cursor: pointer; }
+  .logform button:disabled { opacity: .5; }
+  .loglist { list-style: none; padding: 0; margin: var(--sp-4) 0 var(--sp-2); }
+  .loglist li { display: flex; align-items: center; gap: var(--sp-2);
+    padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); }
+  .lscore { width: 24px; height: 24px; border-radius: 6px; color: #04101f;
+    font-weight: 700; font-size: .82rem; display: inline-flex; align-items: center;
+    justify-content: center; flex: 0 0 auto; }
+  .ldate { font-size: .82rem; color: var(--text-dim); flex: 0 0 auto; }
+  .lnotes { font-size: .85rem; flex: 1; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .ldel { background: none; border: 0; color: var(--text-dim); cursor: pointer;
+    font-size: .9rem; flex: 0 0 auto; }
 </style>

@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import auth, buoys, cache, config, forecast
+from . import accuracy, auth, buoys, cache, config, forecast, sessions
 from .spots import get_spot, load_spots
 
 logging.basicConfig(
@@ -40,6 +40,7 @@ _scheduler: BackgroundScheduler | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     cache.init_db()
+    sessions.init_db()
 
     global _scheduler
     _scheduler = BackgroundScheduler(daemon=True)
@@ -187,9 +188,35 @@ def buoy_readings():
 
 
 @app.get("/api/accuracy")
-def accuracy():
-    # Placeholder until the buoy-validation job is ported from the spike.
-    return {"models": [], "note": "model-accuracy scorecard not yet populated"}
+def accuracy_scorecard():
+    """Which forecast model has been most accurate vs measured buoys lately."""
+    return accuracy.build_scorecard()
+
+
+@app.get("/api/sessions")
+def list_sessions(spot_id: str | None = Query(None)):
+    return {"sessions": sessions.list_for(spot_id)}
+
+
+@app.post("/api/sessions")
+async def add_session(request: Request):
+    body = await request.json()
+    spot_id = body.get("spot_id")
+    if not spot_id or get_spot(spot_id) is None:
+        raise HTTPException(status_code=400, detail="valid spot_id required")
+    date = body.get("date") or ""
+    try:
+        rating = int(body.get("rating"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="rating 0-5 required")
+    return sessions.add(spot_id, date, rating, body.get("notes", ""))
+
+
+@app.delete("/api/sessions/{session_id}")
+def delete_session(session_id: int):
+    if not sessions.delete(session_id):
+        raise HTTPException(status_code=404, detail="session not found")
+    return {"ok": True}
 
 
 # --- Serve the built SvelteKit SPA (SDD §12: single-container deploy) ---
