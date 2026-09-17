@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import auth, cache, config, forecast
+from . import auth, buoys, cache, config, forecast
 from .spots import get_spot, load_spots
 
 logging.basicConfig(
@@ -178,6 +178,12 @@ def spot_forecast(spot_id: str, force: bool = Query(False)):
 @app.get("/api/summary")
 def summary():
     return forecast.build_summary()
+
+
+@app.get("/api/buoys")
+def buoy_readings():
+    """Live measured offshore conditions from Marine Institute buoys."""
+    return {"buoys": buoys.latest_readings()}
 
 
 @app.get("/api/accuracy")

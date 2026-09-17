@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { getOverview, getSummary } from '$lib/api.js';
+  import { getOverview, getSummary, getBuoys } from '$lib/api.js';
   import SpotCard from '$lib/SpotCard.svelte';
   import { scrollSync } from '$lib/scrollSync.js';
   import {
@@ -18,7 +18,18 @@
     catch (e) { error = e.message; }
     finally { loading = false; }
   }
+  // Live measured buoys (ground truth alongside the forecast).
+  let buoys = $state([]);
+  async function loadBuoys() {
+    try { buoys = (await getBuoys()).buoys ?? []; } catch { buoys = []; }
+  }
   onMount(load);
+  onMount(loadBuoys);
+
+  function buoyTime(iso) {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
   // Shared calendar header dates (from the first available spot).
   const headerDays = $derived.by(() => {
@@ -104,6 +115,27 @@
       </div>
       <p class="muted small">Tap a spot for the hour-by-hour detail (swell, wind, tide).</p>
     </details>
+
+    {#if buoys.length}
+      <section class="buoys">
+        <h2 class="county">Measured offshore now</h2>
+        <div class="buoy-row">
+          {#each buoys as b}
+            <div class="buoy">
+              <div class="bt">{b.label?.split(' — ')[0] ?? b.station}</div>
+              <div class="bh">{(b.wave_height_m ?? 0).toFixed(1)}<span>m</span></div>
+              <div class="bmeta">
+                {b.wave_period_s ? b.wave_period_s.toFixed(0) + 's' : '–'}
+                {#if b.sea_temp_c} · {b.sea_temp_c.toFixed(0)}°C{/if}
+              </div>
+              <div class="bwhen">{buoyTime(b.time)}</div>
+            </div>
+          {/each}
+        </div>
+        <p class="muted small">Real readings from Marine Institute buoys — open-ocean
+          swell reaching the coast (not the surf height at the beach).</p>
+      </section>
+    {/if}
 
     <p class="foot muted">
       Forecasts open-ocean conditions (swell, wind, tide) — not the exact wave on
@@ -204,5 +236,16 @@
   .err { background: var(--bg-card); border: 1px solid var(--r1); border-radius: var(--radius); padding: var(--sp-4); }
   button { margin-top: var(--sp-2); background: var(--accent); color: #04101f;
     border: 0; border-radius: 8px; padding: 8px 16px; font: inherit; font-weight: 600; }
+  .buoys { margin-top: var(--sp-6); }
+  .buoy-row { display: flex; gap: var(--sp-3); overflow-x: auto;
+    -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .buoy { flex: 0 0 auto; min-width: 96px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: var(--sp-3); text-align: center; }
+  .bt { font-size: .78rem; color: var(--text-dim); font-weight: 500; }
+  .bh { font-size: 1.5rem; font-weight: 600; margin-top: 2px; }
+  .bh span { font-size: .8rem; font-weight: 400; color: var(--text-dim); }
+  .bmeta { font-size: .8rem; color: var(--text-dim); }
+  .bwhen { font-size: .7rem; color: var(--text-dim); margin-top: 2px; }
   .foot { font-size: .8rem; margin-top: var(--sp-6); line-height: 1.5; }
 </style>

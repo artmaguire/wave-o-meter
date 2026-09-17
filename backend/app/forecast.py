@@ -25,6 +25,29 @@ def compass(deg: float | None) -> str | None:
     return _COMPASS[round(deg / 22.5) % 16]
 
 
+def _rnd(v, ndigits=2):
+    return round(v, ndigits) if v is not None else None
+
+
+def _wave_components(fc, i) -> dict:
+    """Groundswell vs wind-wave split — the key surf-quality signal.
+    Clean long-period groundswell surfs far better than messy wind chop of the
+    same height."""
+    sh = fc.swell_height[i]
+    wh = fc.wind_wave_height[i]
+    dominant = "swell"
+    if sh is not None and wh is not None:
+        dominant = "swell" if sh >= wh else "windsea"
+    return {
+        "swell_height_m": _rnd(sh),
+        "swell_period_s": _rnd(fc.swell_period[i], 1),
+        "swell_dir_deg": _rnd(fc.swell_direction[i], 0),
+        "swell_dir_compass": compass(fc.swell_direction[i]),
+        "wind_wave_height_m": _rnd(wh),
+        "dominant": dominant,
+    }
+
+
 def _wind_relation(wind_from: float, spot: Spot) -> str:
     """offshore / cross-shore / onshore relative to the spot (SDD 11)."""
     center, _ = scoring.window_center_and_half(spot.optimal_wind_dir)
@@ -80,6 +103,8 @@ def build_forecast(spot: Spot) -> dict:
                 "direction_compass": compass(wdir),
                 "relation": _wind_relation(wdir, spot),
             },
+            "components": _wave_components(fc, i),
+            "sea_temp_c": _rnd(fc.sea_temp[i], 1),
             "tide": {"state": ts},
             "confidence": conf,
             "spread_m": round(spread, 2) if spread is not None else None,

@@ -42,6 +42,11 @@
     })
   );
   const anyLongRange = $derived(selHours.some((h) => h.confidence === 'long_range'));
+  const seaTemp = $derived.by(() => {
+    const withTemp = selHours.filter((h) => h.sea_temp_c != null);
+    if (!withTemp.length) return null;
+    return withTemp[Math.floor(withTemp.length / 2)].sea_temp_c;
+  });
 
   // Single best time to surf that day: the highest-scoring hour, but only if
   // it's genuinely worth it (Fair+). This already accounts for tide/wind because
@@ -110,6 +115,7 @@
       <div class="dayhead">
         <strong>{fmtDayFull(selDay.date)}</strong>
         <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
+        {#if seaTemp != null}<span class="seatemp">🌡 {seaTemp.toFixed(0)}°C</span>{/if}
       </div>
       {#if anyLongRange}
         <p class="lr">Long-range outlook — a single model, treat as a rough trend.</p>
@@ -123,6 +129,7 @@
             <span class="c-surf">Surf</span>
             <span class="c-swell">Swell</span>
             <span class="c-wind">Wind</span>
+            <span class="c-sea">Sea</span>
             <span class="c-tide">Tide</span>
           </div>
           {#each selHours as h}
@@ -144,6 +151,13 @@
                 <span class="val">{Math.round(h.wind.speed_ms)}<span class="unit">m/s</span></span>
                 <span class="arrow" style="transform:{dirArrow(h.wind.direction_deg)}">↑</span>
                 <span class="sub rel-{h.wind.relation}">{h.wind.direction_compass}</span>
+              </span>
+              <span class="c-sea">
+                {#if h.components}
+                  <span class="seatype seatype-{h.components.dominant}">
+                    {h.components.dominant === 'swell' ? 'clean' : 'wind'}
+                  </span>
+                {:else}·{/if}
               </span>
               <span class="c-tide tstate">{h.tide.state}</span>
             </div>
@@ -227,9 +241,9 @@
      instead of compressing/cutting off the tide column */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border); border-radius: var(--radius); }
-  .table { background: var(--bg-card); min-width: 460px; }
+  .table { background: var(--bg-card); min-width: 520px; }
   .thead, .trow { display: grid;
-    grid-template-columns: 4.5rem 5rem 5.5rem 6rem 3.5rem;
+    grid-template-columns: 4.2rem 4.8rem 5.2rem 5.6rem 3.4rem 3.4rem;
     align-items: center; column-gap: var(--sp-3);
     padding: var(--sp-3) var(--sp-4); }
   .thead { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
@@ -262,6 +276,11 @@
   .rel-offshore { color: var(--r4); } .rel-onshore { color: var(--r2); }
   .rel-cross-shore { color: var(--r3); }
   .c-tide { text-transform: capitalize; font-size: .85rem; color: var(--text-dim); }
+  .c-sea { font-size: .8rem; }
+  .seatype { padding: 2px 7px; border-radius: 999px; font-size: .74rem; font-weight: 600; }
+  .seatype-swell { background: color-mix(in srgb, var(--r4) 22%, transparent); color: var(--r4); }
+  .seatype-windsea { background: color-mix(in srgb, var(--r2) 22%, transparent); color: var(--r2); }
+  .seatemp { font-size: .85rem; color: var(--text-dim); margin-left: auto; }
   .empty { padding: var(--sp-4); }
   .bestbox { display: flex; gap: var(--sp-2); align-items: flex-start;
     margin-top: var(--sp-3); padding: var(--sp-3);

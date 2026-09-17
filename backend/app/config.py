@@ -39,6 +39,10 @@ FORECAST_API = os.environ.get(
 # land (~0.5 m at Lahinch while ECMWF/others read ~2.3 m), poisoning the spread.
 # meteofrance_wave resolves the coast well and reaches ~day 10.
 PRIMARY_WAVE_MODEL = "ecmwf_wam025"
+# Spread models for the confidence signal: meteofrance_wave (~day 10) + ewam
+# (~day 3). GWAM is deliberately excluded — re-verified that its coarse grid
+# still resolves nearshore Irish spots onto land (0.59 m at Lahinch vs ~3 m),
+# which poisons the spread. Only ECMWF is trusted for the rating itself.
 SPREAD_WAVE_MODELS = ["meteofrance_wave", "ewam"]
 ALL_WAVE_MODELS = [PRIMARY_WAVE_MODEL, *SPREAD_WAVE_MODELS]
 

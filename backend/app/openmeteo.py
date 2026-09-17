@@ -91,6 +91,12 @@ class SpotForecast:
     sea_level: list[float | None]
     wind_speed: list[float | None]     # m/s
     wind_direction: list[float | None]
+    # swell / wind-wave separation + sea temp (base marine vars, not model-split)
+    swell_height: list[float | None]
+    swell_period: list[float | None]
+    swell_direction: list[float | None]
+    wind_wave_height: list[float | None]
+    sea_temp: list[float | None]       # °C
     # spread models: model_id -> wave_height series aligned to `times`
     spread_heights: dict[str, list[float | None]]
 
@@ -111,14 +117,19 @@ def fetch_marine(lat: float, lon: float) -> dict:
     return _get(url)
 
 
-def fetch_sea_level(lat: float, lon: float) -> dict:
-    """Tide/sea level from the marine API. Must be requested WITHOUT the models
-    param — sea_level_height_msl is a base marine variable, not model-specific;
-    requesting it alongside wave models returns all-null."""
+def fetch_base(lat: float, lon: float) -> dict:
+    """Base marine variables (NOT model-split): tide, swell/wind-wave separation,
+    and sea temperature. These must be requested WITHOUT the models param —
+    requesting them alongside wave models returns all-null."""
     params = {
         "latitude": lat,
         "longitude": lon,
-        "hourly": "sea_level_height_msl",
+        "hourly": ",".join([
+            "sea_level_height_msl",
+            "swell_wave_height", "swell_wave_period", "swell_wave_direction",
+            "wind_wave_height",
+            "sea_surface_temperature",
+        ]),
         "forecast_days": config.FORECAST_DAYS,
         "timezone": "GMT",
     }
@@ -156,10 +167,10 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
 
     with ThreadPoolExecutor(max_workers=3) as ex:
         f_marine = ex.submit(fetch_marine, lat, lon)
-        f_sea = ex.submit(fetch_sea_level, lat, lon)
+        f_base = ex.submit(fetch_base, lat, lon)
         f_wind = ex.submit(fetch_wind, lat, lon)
         marine = f_marine.result()
-        sea = f_sea.result()
+        base = f_base.result()
         wind = f_wind.result()
 
     m_hourly = marine.get("hourly", {})
@@ -171,12 +182,20 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
     wave_period = _series(m_hourly, f"wave_period_{primary}", n)
     wave_direction = _series(m_hourly, f"wave_direction_{primary}", n)
 
-    # sea level comes from its own (model-less) request; align by timestamp.
-    s_hourly = sea.get("hourly", {})
-    s_times = _parse_times(s_hourly.get("time", []))
-    s_vals = _series(s_hourly, "sea_level_height_msl", len(s_times))
-    sea_by_t = dict(zip(s_times, s_vals))
-    sea_level = [sea_by_t.get(t) for t in times]
+    # base marine vars (model-less request); align each by timestamp.
+    b_hourly = base.get("hourly", {})
+    b_times = _parse_times(b_hourly.get("time", []))
+
+    def _aligned(key):
+        by_t = dict(zip(b_times, _series(b_hourly, key, len(b_times))))
+        return [by_t.get(t) for t in times]
+
+    sea_level = _aligned("sea_level_height_msl")
+    swell_height = _aligned("swell_wave_height")
+    swell_period = _aligned("swell_wave_period")
+    swell_direction = _aligned("swell_wave_direction")
+    wind_wave_height = _aligned("wind_wave_height")
+    sea_temp = _aligned("sea_surface_temperature")
 
     spread_heights: dict[str, list[float | None]] = {}
     for model in config.ALL_WAVE_MODELS:
@@ -201,6 +220,11 @@ def fetch_spot_forecast(lat: float, lon: float) -> SpotForecast:
         sea_level=sea_level,
         wind_speed=wind_speed,
         wind_direction=wind_direction,
+        swell_height=swell_height,
+        swell_period=swell_period,
+        swell_direction=swell_direction,
+        wind_wave_height=wind_wave_height,
+        sea_temp=sea_temp,
         spread_heights=spread_heights,
     )
 
@@ -214,6 +238,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
         "daily": ",".join([
             "temperature_2m_max", "temperature_2m_min",
             "precipitation_sum", "wind_speed_10m_max", "wind_gusts_10m_max",
+            "weather_code", "sunrise", "sunset", "uv_index_max",
         ]),
         "forecast_days": config.FORECAST_DAYS,
         "wind_speed_unit": "ms",

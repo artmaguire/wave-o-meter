@@ -505,6 +505,26 @@ gate was added (`auth.py` + `/api/gate/*` + a `Gate.svelte` screen):
   it behind a TLS reverse proxy (e.g. Caddy) and set COOKIE_SECURE=1. Without
   TLS the answer and cookie travel in plaintext.
 
+### Richer data (v1.1)
+- **Swell / wind-wave separation** (`swell_wave_*`, `wind_wave_height` from
+  Open-Meteo marine base vars): the detail table's "Sea" column shows whether the
+  hour is clean groundswell or messy windsea — the key surf-quality distinction
+  that total wave height hides.
+- **Sea surface temperature** per spot (wetsuit call), shown in the day header.
+- **Marine Institute live buoys** (`buoys.py` + `/api/buoys`): a "Measured
+  offshore now" panel on the home page with real Hs/period/SST from the M6/M3/M2
+  buoys (data.marine.ie ERDDAP) — legitimate open ground-truth beside the
+  forecast. 30-min cache; degrades gracefully if unreachable.
+- **Daily weather extras** (weather_code, sunrise/sunset, UV) added to the
+  weather fetch for the narrative.
+- **Ensemble note:** attempted to widen the model ensemble, but re-confirmed GFS/
+  ICON aren't on Open-Meteo's marine endpoint and GWAM still resolves nearshore
+  Irish spots onto land — so the trustworthy spread stays ECMWF + meteofrance_wave
+  (+ ewam near-term). Richness came from extra *variables*, not more models.
+- **NOTE on scraping:** owner asked about scraping Surfline/surf-forecast for a
+  local deploy; declined — ToS violation + Surfline bot-protection. Added the
+  legitimate buoy + variable data instead.
+
 ### Known follow-ups
 - Dayparts bucket by UTC hour (~1h off Irish summer local); could localise.
 - `model_accuracy` scorecard endpoint is a placeholder (buoy-validation job from
