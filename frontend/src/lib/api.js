@@ -44,3 +44,4 @@ export async function deleteSession(id) {
 
 // --- accuracy scorecard ---
 export const getAccuracy = () => getJSON('/api/accuracy');
+export const getSessionOptions = () => getJSON('/api/sessions/options');

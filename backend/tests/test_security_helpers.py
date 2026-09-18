@@ -106,8 +106,9 @@ def test_sessions_rating_clamped_and_notes_truncated():
     from app import config, db, sessions
     importlib.reload(config); importlib.reload(db); importlib.reload(sessions)
     sessions.init_db()
-    hi = sessions.add("lahinch", "2026-09-20", 9, "x" * 999)  # rating>5, long note
-    assert hi["rating"] == 5 and len(hi["notes"]) <= 500
+    # rating clamped to 0-5; notes capped at 1000 chars
+    hi = sessions.add("lahinch", "2026-09-20", 9, "x" * 1500)
+    assert hi["rating"] == 5 and len(hi["notes"]) == 1000
     lo = sessions.add("lahinch", "2026-09-20", -3, "")
     assert lo["rating"] == 0
     assert sessions.delete(hi["id"]) is True
@@ -115,6 +116,40 @@ def test_sessions_rating_clamped_and_notes_truncated():
 
 
 # --- forecast helpers ---
+
+def test_sessions_rich_fields_and_vocab_filtering():
+    os.environ["DB_PATH"] = "/tmp/wom_test_rich.sqlite3"
+    for suf in ("", "-wal", "-shm"):
+        try:
+            os.remove("/tmp/wom_test_rich.sqlite3" + suf)
+        except OSError:
+            pass
+    from app import config, db, sessions
+    importlib.reload(config); importlib.reload(db); importlib.reload(sessions)
+    sessions.init_db()
+    row = sessions.add(
+        "lahinch", "2026-09-20", 4, "peaky lefts",
+        time_of_day="08:00", wave_size="chest", wave_quality="clean",
+        wind="light offshore", tide="mid", tide_movement="rising",
+        crowd="a few out", board="shortboard", wetsuit="4/3 + booties",
+        length="1-2 h")
+    assert row["wave_size"] == "chest" and row["board"] == "shortboard"
+    assert row["tide_movement"] == "rising" and row["time_of_day"] == "08:00"
+    # unknown vocabulary values are dropped, keeping the data analysable
+    bad = sessions.add("lahinch", "2026-09-20", 3, "", wave_size="enormous",
+                       wind="hurricane", board="jetski")
+    assert bad["wave_size"] == "" and bad["wind"] == "" and bad["board"] == ""
+    # round-trips through the DB
+    listed = sessions.list_for("lahinch")
+    assert any(r["wave_quality"] == "clean" for r in listed)
+
+
+def test_session_vocab_exposed_for_dropdowns():
+    from app import sessions
+    for key in ("wave_size", "wave_quality", "wind", "tide", "tide_movement",
+                "crowd", "board", "wetsuit", "length", "rating"):
+        assert key in sessions.VOCAB and sessions.VOCAB[key]
+
 
 def test_wetsuit_thresholds_irish_calibration():
     from app import forecast

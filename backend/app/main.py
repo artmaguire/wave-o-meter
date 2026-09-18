@@ -208,6 +208,12 @@ def list_sessions(spot_id: str | None = Query(None)):
     return {"sessions": sessions.list_for(spot_id)}
 
 
+@app.get("/api/sessions/options")
+def session_options():
+    """Controlled vocabularies for the log-a-session form dropdowns."""
+    return {"options": sessions.VOCAB}
+
+
 @app.post("/api/sessions")
 async def add_session(request: Request):
     body = await request.json()
@@ -219,7 +225,10 @@ async def add_session(request: Request):
         rating = int(body.get("rating"))
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=400, detail="rating 0-5 required") from e
-    return sessions.add(spot_id, date, rating, body.get("notes", ""))
+    extra = {k: body.get(k) for k in
+             ("time_of_day", "wave_size", "wave_quality", "wind", "tide",
+              "tide_movement", "crowd", "board", "wetsuit", "length")}
+    return sessions.add(spot_id, date, rating, body.get("notes", ""), **extra)
 
 
 @app.delete("/api/sessions/{session_id}")

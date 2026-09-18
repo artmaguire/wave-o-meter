@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { getForecast, getSessions, addSession, deleteSession } from '$lib/api.js';
+  import { getForecast, getSessions, deleteSession } from '$lib/api.js';
   import Rating from '$lib/Rating.svelte';
   import DayCard from '$lib/DayCard.svelte';
   import {
@@ -31,24 +31,6 @@
 
   // --- session log ---
   let logs = $state([]);
-  let logDate = $state(new Date().toISOString().slice(0, 10));
-  let logRating = $state(3);
-  let logNotes = $state('');
-  let logBusy = $state(false);
-  async function loadLogs() {
-    try { logs = (await getSessions(id)).sessions ?? []; } catch { logs = []; }
-  }
-  onMount(loadLogs);
-  async function saveLog(e) {
-    e.preventDefault();
-    if (logBusy) return;
-    logBusy = true;
-    try {
-      await addSession({ spot_id: id, date: logDate, rating: logRating, notes: logNotes });
-      logNotes = '';
-      await loadLogs();
-    } catch (_) { /* ignore */ } finally { logBusy = false; }
-  }
   async function removeLog(sid) {
     try { await deleteSession(sid); await loadLogs(); } catch (_) {}
   }
@@ -316,31 +298,27 @@
 
     <!-- session log: your own observations (calibration foundation) -->
     <section class="log">
-      <h2>Your sessions</h2>
-      <form class="logform" onsubmit={saveLog}>
-        <div class="logrow">
-          <input type="date" bind:value={logDate} aria-label="Session date" />
-          <select bind:value={logRating} aria-label="Your rating">
-            <option value={0}>0 – No surf</option>
-            <option value={1}>1 – Very poor</option>
-            <option value={2}>2 – Poor</option>
-            <option value={3}>3 – Fair</option>
-            <option value={4}>4 – Good</option>
-            <option value={5}>5 – Very good</option>
-          </select>
-        </div>
-        <input class="notes" type="text" bind:value={logNotes}
-          placeholder="Notes (tide, crowd, how it broke…)" maxlength="500" />
-        <button type="submit" disabled={logBusy}>{logBusy ? 'Saving…' : 'Log session'}</button>
-      </form>
+      <div class="loghead">
+        <h2>Your sessions</h2>
+        <a class="logbtn" href="/log?spot={id}">+ Log a session</a>
+      </div>
 
       {#if logs.length}
         <ul class="loglist">
           {#each logs as l}
             <li>
               <span class="lscore" style="background:{ratingColor(l.rating)}">{l.rating}</span>
-              <span class="ldate">{l.date}</span>
-              {#if l.notes}<span class="lnotes">{l.notes}</span>{/if}
+              <div class="lbody">
+                <div class="lmeta">
+                  <span class="ldate">{l.date}{#if l.time_of_day} · {l.time_of_day}{/if}</span>
+                  {#if l.wave_size}<span class="ltag">{l.wave_size}</span>{/if}
+                  {#if l.wave_quality}<span class="ltag">{l.wave_quality}</span>{/if}
+                  {#if l.wind}<span class="ltag">{l.wind}</span>{/if}
+                  {#if l.tide}<span class="ltag">{l.tide}{#if l.tide_movement} {l.tide_movement}{/if}</span>{/if}
+                  {#if l.board}<span class="ltag">{l.board}</span>{/if}
+                </div>
+                {#if l.notes}<div class="lnotes">{l.notes}</div>{/if}
+              </div>
               <button class="ldel" onclick={() => removeLog(l.id)} aria-label="Delete">✕</button>
             </li>
           {/each}
@@ -462,23 +440,21 @@
   .log { margin-top: var(--sp-6); background: var(--bg-card);
     border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
   .log h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
-  .logform { display: flex; flex-direction: column; gap: var(--sp-2); }
-  .logrow { display: flex; gap: var(--sp-2); }
-  .logform input, .logform select { flex: 1; min-width: 0; background: var(--bg-elev);
-    border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px;
-    font: inherit; color: var(--text); }
-  .logform button { background: var(--accent); color: #04101f; border: 0;
-    border-radius: 8px; padding: 10px; font: inherit; font-weight: 600; cursor: pointer; }
-  .logform button:disabled { opacity: .5; }
+  .loghead { display: flex; justify-content: space-between; align-items: center; }
+  .logbtn { background: var(--accent); color: #04101f; border-radius: 999px;
+    padding: 7px 14px; font-size: .84rem; font-weight: 600; white-space: nowrap; }
   .loglist { list-style: none; padding: 0; margin: var(--sp-4) 0 var(--sp-2); }
-  .loglist li { display: flex; align-items: center; gap: var(--sp-2);
-    padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); }
+  .loglist li { display: flex; align-items: flex-start; gap: var(--sp-2);
+    padding: var(--sp-3) 0; border-bottom: 1px solid var(--border); }
+  .lbody { flex: 1; min-width: 0; }
+  .lmeta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .ltag { font-size: .72rem; background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 999px; padding: 1px 7px; color: var(--text-dim); }
   .lscore { width: 24px; height: 24px; border-radius: 6px; color: #04101f;
     font-weight: 700; font-size: .82rem; display: inline-flex; align-items: center;
     justify-content: center; flex: 0 0 auto; }
   .ldate { font-size: .82rem; color: var(--text-dim); flex: 0 0 auto; }
-  .lnotes { font-size: .85rem; flex: 1; min-width: 0; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap; }
+  .lnotes { font-size: .85rem; margin-top: 4px; line-height: 1.4; }
   .ldel { background: none; border: 0; color: var(--text-dim); cursor: pointer;
     font-size: .9rem; flex: 0 0 auto; }
 </style>
