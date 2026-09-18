@@ -38,6 +38,32 @@
       }
     },
     {
+      "id": "spanish_point",
+      "name": "Spanish Point",
+      "county": "Clare",
+      "lat": 52.838934,
+      "lon": -9.4329034,
+      "break_type": "beach",
+      "skill": "beginner",
+      "optimal_swell_dir": [
+        202,
+        292
+      ],
+      "optimal_wind_dir": [
+        22,
+        157
+      ],
+      "swell_height_m": [
+        1.0,
+        2.5
+      ],
+      "tide": "any",
+      "hazards": "Submerged rocks near the point, especially at low tide; rips pull offshore on bigger swells.",
+      "notes": "Long sandy beach break near Miltown Malbay with a point at one end — mellow rights and lefts, waist-to-head-high, forgiving and approachable. Works all tides, though mid tide usually shapes the best peaks. Fairly consistent year-round; best Sep-Mar on W/SW swell, up to 2-3 m in autumn/winter. Great for beginners and for practising turns; the point comes alive on bigger SW swells. Usually empty midweek. Avoid prolonged S or W winds — they chop it up.",
+      "orientation_verified": true,
+      "links": {}
+    },
+    {
       "id": "lahinch",
       "name": "Lahinch",
       "county": "Clare",

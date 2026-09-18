@@ -13,7 +13,8 @@ from app.spots import get_spot, load_spots  # noqa: E402
 
 def test_spots_load_and_order():
     spots = load_spots()
-    assert len(spots) == 10
+    # don't pin an exact count — spots get added; just require a sane set
+    assert len(spots) >= 10
     # Clare first (SDD §11).
     assert spots[0].county == "Clare"
     counties = [s.county for s in spots]
