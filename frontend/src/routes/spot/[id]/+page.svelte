@@ -116,6 +116,7 @@
   // as separate windows rather than one long blur.
   const WIN_ENTER = 3.0;    // Fair+ — worth surfing
   const SIMILAR = 0.6;      // adjacent hours within this group together
+  const WORTH_SHOWING = 0.7; // secondary windows must be within this of the best
   const bestWindows = $derived.by(() => {
     const good = selHours.filter((h) => h.score != null && inDaylight(h));
     const windows = [];
@@ -139,8 +140,16 @@
       else { flush(); run = [h]; }
     }
     flush();
-    // strongest first
+    // Strongest first, then prune noise: drop windows clearly worse than the
+    // day's best (so one standout hour doesn't get flanked by weaker
+    // "also" boxes), and show at most 3.
     windows.sort((a, b) => b.peak.score - a.peak.score);
+    if (windows.length > 1) {
+      const top = windows[0].peak.score;
+      return windows
+        .filter((w, i) => i === 0 || top - w.peak.score <= WORTH_SHOWING)
+        .slice(0, 3);
+    }
     return windows;
   });
   const windowTimes = $derived.by(() => {
