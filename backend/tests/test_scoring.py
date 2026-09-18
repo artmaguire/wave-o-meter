@@ -172,6 +172,35 @@ def test_oversized_day_scores_as_no_surf():
     assert r.flat is True and r.score == 0.0
 
 
+def test_wind_factor_respects_offshore_window_width():
+    """A wind anywhere inside a spot's (possibly wide) offshore window should
+    count as fully offshore — not be penalised for being far from the window
+    centre. Regression for the wide-window bug (Easkey Left)."""
+    reef = get_spot("easkey_left")   # wide offshore window
+    start, end = reef.optimal_wind_dir
+    # both window EDGES are still offshore -> should be ~1.0 in light-moderate wind
+    for edge in (start, end):
+        assert scoring._wind_factor(edge, 8, reef) >= 0.95
+    # a direction outside the (very wide) window scores lower than the edges
+    center, _ = scoring.window_center_and_half(reef.optimal_wind_dir)
+    outside = (center + 180) % 360
+    assert scoring._wind_factor(outside, 12, reef) < scoring._wind_factor(reef.optimal_wind_dir[0], 12, reef)
+    # and on a NARROW-window spot, true onshore is properly punished
+    beach = get_spot("lahinch")
+    bc, _ = scoring.window_center_and_half(beach.optimal_wind_dir)
+    assert scoring._wind_factor((bc + 180) % 360, 14, beach) < 0.55
+
+
+def test_wind_and_swell_direction_logic_consistent():
+    """Both direction factors give full credit inside the window."""
+    for sid in ("lahinch", "easkey_left", "keel"):
+        sp = get_spot(sid)
+        sc, _ = scoring.window_center_and_half(sp.optimal_swell_dir)
+        wc, _ = scoring.window_center_and_half(sp.optimal_wind_dir)
+        assert scoring._swell_dir_factor(sc, sp) == 1.0
+        assert scoring._wind_factor(wc, 8, sp) >= 0.99
+
+
 if __name__ == "__main__":
     # allow running without pytest
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

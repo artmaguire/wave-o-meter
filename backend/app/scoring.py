@@ -208,16 +208,24 @@ def _wind_factor(wind_from_deg: float, wind_speed_ms: float,
     Light winds barely matter (clean either way); strong onshore wrecks it.
     Gusty wind (big gap between mean and gust) is bumpy even when offshore, so a
     large gust spread trims the score. optimal_wind_dir is the offshore bearing
-    window (wind coming FROM the land).
+    window (wind coming FROM the land); any direction inside it counts as fully
+    offshore, decaying only outside — see the direction-quality block.
     """
-    center, _ = window_center_and_half(spot.optimal_wind_dir)
-    off_dist = angular_distance(wind_from_deg, center)  # 0 offshore .. 180 onshore
-
-    # Direction quality: offshore (0-45° off centre) is ideal; side-shore
-    # (~90°) is workable; only genuine onshore (>135°) is bad. A cosine-based
-    # curve keeps side-shore reasonable instead of the old harsh linear drop.
-    # 0° -> 1.0, 90° -> ~0.6, 180° -> ~0.15.
-    dir_q = 0.25 + 0.75 * (0.5 * (1 + math.cos(math.radians(off_dist))))
+    # Direction quality respects the spot's offshore WINDOW (consistent with
+    # _swell_dir_factor): any wind inside the offshore window is fully offshore
+    # (1.0); outside it, quality decays with distance from the nearest edge.
+    # Cosine over ~135° of decay keeps side-shore workable and only true onshore
+    # (opposite the window) bottoms out. This fixes wide windows, where a genuine
+    # offshore direction far from the window CENTRE was previously penalised.
+    if _in_window(wind_from_deg, spot.optimal_wind_dir):
+        dir_q = 1.0
+    else:
+        start, end = spot.optimal_wind_dir
+        edge_dist = min(angular_distance(wind_from_deg, start),
+                        angular_distance(wind_from_deg, end))
+        # 0° past the edge -> 1.0, 135°+ past -> ~0.15
+        t = min(1.0, edge_dist / 135.0)
+        dir_q = 0.15 + 0.85 * (0.5 * (1 + math.cos(math.radians(t * 180.0))))
 
     # Wind strength gate: light wind barely matters (clean either way); the
     # direction penalty only really bites as wind strengthens.
