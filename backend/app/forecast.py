@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from . import cache, confidence, config, dayparts, openmeteo, scoring
 from . import summary as summary_mod
 from . import tide as tide_mod
+from . import windows as windows_mod
 from .spots import Spot, load_spots
 
 log = logging.getLogger("waveometer.forecast")
