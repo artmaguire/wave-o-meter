@@ -398,7 +398,7 @@
 <style>
   .back { display: inline-block; color: var(--text-dim); margin: var(--sp-3) 0; }
   .compare { margin-top: var(--sp-4); }
-  .compare h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .compare h2 { font-size: 1.1rem; margin-bottom: var(--sp-3); }
   .compare .links { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
   .compare a { background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 999px; padding: 9px 16px; font-size: .9rem; font-weight: 500;
@@ -421,6 +421,7 @@
 
   .dayhead { display: flex; align-items: baseline; gap: var(--sp-3);
     margin: var(--sp-5) 0 var(--sp-3); font-size: 1.1rem; }
+  .dayhead .muted { font-size: .85rem; }
   .lr { font-size: .82rem; color: var(--text-dim); margin: 0 0 var(--sp-3); }
 
   /* hourly table — horizontally scrollable so columns keep their size on mobile
@@ -493,7 +494,7 @@
 
   .knowledge { margin-top: var(--sp-6); background: var(--bg-card);
     border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
-  .knowledge h2 { font-size: 1rem; margin-bottom: var(--sp-2); }
+  .knowledge h2 { font-size: 1.1rem; margin-bottom: var(--sp-2); }
   .knowledge p { margin: var(--sp-2) 0 0; line-height: 1.5; }
   .hazard { color: var(--r2); }
   .small { font-size: .78rem; }
@@ -506,7 +507,7 @@
 
   .log { margin-top: var(--sp-6); background: var(--bg-card);
     border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
-  .log h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .log h2 { font-size: 1.1rem; margin-bottom: var(--sp-3); }
   .loghead { display: flex; justify-content: space-between; align-items: center; }
   .logbtn { background: var(--accent); color: #04101f; border-radius: 999px;
     padding: 7px 14px; font-size: .84rem; font-weight: 600; white-space: nowrap; }
@@ -526,7 +527,7 @@
     font-size: .9rem; flex: 0 0 auto; }
 
   .breakdown { margin-top: var(--sp-5); }
-  .breakdown h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .breakdown h2 { font-size: 1.1rem; margin-bottom: var(--sp-3); }
   .bd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
   .bd-cell { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
     column-gap: var(--sp-2); align-items: center;
