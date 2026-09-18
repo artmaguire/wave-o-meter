@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import confidence, dayparts, summary, tide  # noqa: E402
+from app import confidence, dayparts, openmeteo, summary, tide  # noqa: E402
 
 # --- confidence ---
 
@@ -177,6 +177,71 @@ def test_summary_good_day_count_from_data():
                    "2026-09-22": [4, 3, 4]})
     out = summary.build_summary([("Lahinch", fc)])
     assert "Pick of the week" in out["verdict"]
+
+
+# --- forecast pure helpers ---
+
+def test_wind_relation_three_way():
+    from app import forecast
+    from app.spots import get_spot
+    sp = get_spot("lahinch")
+    import app.scoring as scoring
+    centre, _ = scoring.window_center_and_half(sp.optimal_wind_dir)
+    assert forecast._wind_relation(centre, sp) == "offshore"        # dead on
+    assert forecast._wind_relation((centre + 90) % 360, sp) == "cross-shore"
+    assert forecast._wind_relation((centre + 180) % 360, sp) == "onshore"
+
+
+class _FakeFC:
+    """Minimal stand-in for a SpotForecast with indexed lists."""
+    def __init__(self, sh, sp, sd):
+        self.sec_swell_height = [sh]
+        self.sec_swell_period = [sp]
+        self.sec_swell_direction = [sd]
+
+
+def test_secondary_swell_threshold():
+    from app import forecast
+    # below 0.4 m -> ignored
+    assert forecast._secondary_swell(_FakeFC(0.3, 8, 270), 0) is None
+    assert forecast._secondary_swell(_FakeFC(None, None, None), 0) is None
+    # meaningful secondary swell -> reported with compass
+    r = forecast._secondary_swell(_FakeFC(0.8, 9.0, 225), 0)
+    assert r and r["height_m"] == 0.8 and r["dir_compass"] == "SW"
+
+
+# --- summary weather branch (previously untested) ---
+
+def test_summary_outlook_reflects_weather():
+    fc = _fc_days({"2026-09-20": [4, 4, 3], "2026-09-21": [3, 4, 4],
+                   "2026-09-22": [2, 2, 2]})
+    weather = {"daily": {
+        "time": ["2026-09-20", "2026-09-21", "2026-09-22"],
+        "wind_speed_10m_max": [4.0, 13.0, 6.0],     # calm, blown out, light
+        "wind_gusts_10m_max": [7.0, 22.0, 9.0],
+        "precipitation_sum": [0.0, 8.0, 0.0],       # wet on the 21st
+        "temperature_2m_max": [16, 15, 17],
+    }}
+    out = summary.build_summary([("Lahinch", fc)], weather=weather)
+    text = " ".join(out["outlook"]).lower()
+    assert "wind" in text            # weather paragraph present
+    assert "blown out" in text or "messy" in text   # strong-wind day flagged
+
+
+# --- openmeteo pure helpers ---
+
+def test_openmeteo_series_padding_and_nulls():
+    hourly = {"wave_height": [1.0, None, 2.5]}
+    assert openmeteo._series(hourly, "wave_height", 3) == [1.0, None, 2.5]
+    # missing key -> padded to n with None (keeps alignment)
+    assert openmeteo._series(hourly, "absent", 4) == [None, None, None, None]
+
+
+def test_openmeteo_parse_times_are_utc_zoned():
+    ts = openmeteo._parse_times(["2026-09-20T00:00", "2026-09-20T01:00"])
+    assert len(ts) == 2
+    assert all(t.tzinfo is not None for t in ts)   # zone-aware, not naive
+    assert ts[1].hour == 1
 
 
 if __name__ == "__main__":

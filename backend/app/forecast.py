@@ -41,8 +41,6 @@ def wetsuit_for(sst: float | None) -> str | None:
     """
     if sst is None:
         return None
-    if sst >= 17:
-        return "4/3 mm"
     if sst >= 14:
         return "4/3 mm"
     if sst >= 12:
@@ -244,13 +242,15 @@ def spot_meta(spot: Spot) -> dict:
 
 
 def get_forecast(spot: Spot, *, force: bool = False) -> dict:
-    """Cached read with on-open staleness refresh (SDD 5)."""
-    if force or cache.is_stale(spot.id):
-        payload = build_forecast(spot)
-        cache.put(spot.id, payload)
-        return payload
-    entry = cache.get(spot.id)
-    return entry["payload"] if entry else build_and_cache(spot)
+    """Cached read with on-open staleness refresh (SDD 5).
+
+    Reads the cache entry ONCE and checks staleness from its timestamp, so a
+    warm read is a single DB connect + single JSON parse (not two of each)."""
+    if not force:
+        entry = cache.get(spot.id)
+        if entry and not cache.is_stale_ts(entry["fetched_at"]):
+            return entry["payload"]
+    return build_and_cache(spot)
 
 
 def build_and_cache(spot: Spot) -> dict:

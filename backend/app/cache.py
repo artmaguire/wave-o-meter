@@ -59,6 +59,16 @@ def fetched_at(spot_id: str) -> datetime | None:
     return datetime.fromisoformat(entry["fetched_at"])
 
 
+def is_stale_ts(fetched_at_iso: str | None) -> bool:
+    """Staleness from an already-fetched timestamp string — lets a caller that
+    has just read an entry avoid a second DB round-trip + JSON parse."""
+    if not fetched_at_iso:
+        return True
+    ts = datetime.fromisoformat(fetched_at_iso)
+    age_min = (datetime.now(timezone.utc) - ts).total_seconds() / 60.0
+    return age_min >= config.CACHE_STALE_MIN
+
+
 def is_stale(spot_id: str) -> bool:
     ts = fetched_at(spot_id)
     if ts is None:
