@@ -256,6 +256,7 @@
             <span class="c-swell">Swell</span>
             <span class="c-power">Power</span>
             <span class="c-wind">Wind</span>
+            <span class="c-type">Type</span>
             <span class="c-sea">Sea</span>
             <span class="c-tide">Tide</span>
           </div>
@@ -282,7 +283,10 @@
               <span class="c-wind">
                 <span class="val">{msToKmh(h.wind.speed_ms)}<span class="unit">km/h</span></span>
                 <span class="arrow" style="transform:{dirArrow(h.wind.direction_deg)}">↑</span>
-                <span class="sub rel-{h.wind.relation}">{h.wind.relation}</span>
+                <span class="sub">{h.wind.direction_compass}</span>
+              </span>
+              <span class="c-type">
+                <span class="wtype wtype-{h.wind.relation}">{h.wind.relation}</span>
               </span>
               <span class="c-sea">
                 {#if h.components}
@@ -424,9 +428,9 @@
      instead of compressing/cutting off the tide column */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border); border-radius: var(--radius); }
-  .table { background: var(--bg-card); min-width: 620px; }
+  .table { background: var(--bg-card); min-width: 700px; }
   .thead, .trow { display: grid;
-    grid-template-columns: 4.2rem 4.8rem 5rem 4.6rem 5.4rem 3.2rem 3.2rem;
+    grid-template-columns: 4rem 4.6rem 4.8rem 4.4rem 4.8rem 4.8rem 3.2rem 3.2rem;
     align-items: center; column-gap: var(--sp-3);
     padding: var(--sp-3) var(--sp-4); }
   .thead { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
@@ -460,6 +464,12 @@
   .rel-cross-shore { color: var(--r3); }
   .c-tide { text-transform: capitalize; font-size: .85rem; color: var(--text-dim); }
   .c-sea { font-size: .8rem; }
+  .c-type { font-size: .8rem; }
+  .wtype { padding: 2px 7px; border-radius: 999px; font-size: .72rem; font-weight: 600;
+    white-space: nowrap; text-transform: capitalize; }
+  .wtype-offshore { background: color-mix(in srgb, var(--r4) 22%, transparent); color: var(--r4); }
+  .wtype-cross-shore { background: color-mix(in srgb, var(--r3) 22%, transparent); color: var(--r3); }
+  .wtype-onshore { background: color-mix(in srgb, var(--r2) 22%, transparent); color: var(--r2); }
   .c-power { font-size: .8rem; }
   .pw { padding: 2px 6px; border-radius: 999px; font-size: .72rem; font-weight: 600;
     white-space: nowrap; }
