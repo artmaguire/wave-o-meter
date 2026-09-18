@@ -108,12 +108,14 @@
     return `${a}–${endHr % 12 || 12}${endHr >= 12 ? 'pm' : 'am'}`;
   }
 
-  // Recommended surf windows that day: contiguous runs of daylight hours that
-  // are clearly GOOD (>=3.5), and only kept if the run's PEAK reaches 4.0 —
-  // so a "window" means genuinely good surf, not merely Fair. Stricter than
-  // before to avoid flagging long marginal stretches.
-  const WIN_ENTER = 3.5;   // an hour must reach this to be in a window
-  const WIN_PEAK = 4.0;    // the run's best hour must reach this to count
+  // Recommended surf windows that day. Any daylight hour that's Fair+ (>=3) is
+  // worth flagging — so a decent day nearly always gets a window/best time.
+  // Adjacent hours group into one window ONLY if they're genuinely similar
+  // (within SIMILAR of each other AND both still Fair+); a real dip or a big
+  // score change splits them, so distinct humps (e.g. morning + evening) show
+  // as separate windows rather than one long blur.
+  const WIN_ENTER = 3.0;    // Fair+ — worth surfing
+  const SIMILAR = 0.6;      // adjacent hours within this group together
   const bestWindows = $derived.by(() => {
     const good = selHours.filter((h) => h.score != null && inDaylight(h));
     const windows = [];
@@ -121,24 +123,20 @@
     const flush = () => {
       if (run.length) {
         const peak = run.reduce((a, b) => (b.score > a.score ? b : a));
-        if (peak.score >= WIN_PEAK) {
-          windows.push({ start: run[0], end: run[run.length - 1], peak,
-                         label: windowLabel(run[0], run[run.length - 1]),
-                         reason: windowReason(peak) });
-        }
+        windows.push({ start: run[0], end: run[run.length - 1], peak,
+                       label: windowLabel(run[0], run[run.length - 1]),
+                       reason: windowReason(peak) });
       }
       run = [];
     };
     for (let i = 0; i < good.length; i++) {
       const h = good[i];
-      const contiguous = run.length &&
-        hourNum(h.time) - hourNum(run[run.length - 1].time) === 1;
-      if (h.score >= WIN_ENTER) {
-        if (contiguous) run.push(h);
-        else { flush(); run = [h]; }
-      } else {
-        flush();
-      }
+      if (h.score < WIN_ENTER) { flush(); continue; }
+      const prev = run[run.length - 1];
+      const consecutive = prev && hourNum(h.time) - hourNum(prev.time) === 1;
+      const similar = prev && Math.abs(h.score - prev.score) <= SIMILAR;
+      if (consecutive && similar) run.push(h);
+      else { flush(); run = [h]; }
     }
     flush();
     // strongest first

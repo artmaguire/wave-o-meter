@@ -136,7 +136,15 @@ def _base_from_size_period(height_m: float, period_s: float,
         return 0.0
     size_q = _size_quality(height_m, spot)
     period_q = _period_quality(period_s, spot)
-    return min(5.0, 5.0 * size_q * period_q)
+    base = 5.0 * size_q * period_q
+    # A 5 ("Very good") should be rare — reserved for genuinely standout,
+    # long-period groundswell. Cap the base below the very top unless the
+    # period is truly long, so a merely-good 10-11s swell tops out around Good.
+    if period_s < 12:
+        base = min(base, 4.2)
+    elif period_s < 14:
+        base = min(base, 4.7)
+    return min(5.0, base)
 
 
 def _clean_factor(swell_h: float | None, windwave_h: float | None) -> float:
