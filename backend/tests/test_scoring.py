@@ -140,6 +140,38 @@ def test_score_clamped_0_to_5():
     assert 0.0 <= r.score <= 5.0
 
 
+def test_size_curve_has_no_cliff_at_minimum():
+    """Surf shouldn't switch from 'No surf' to 'Fair' over 1 cm of swell."""
+    sp = get_spot("lahinch")
+    lo = sp.swell_height_m[0]
+    just_under = scoring._size_quality(lo - 0.01, sp)
+    at_min = scoring._size_quality(lo, sp)
+    assert 0 < just_under < at_min          # ramps in, doesn't jump
+    assert at_min - just_under < 0.05       # and joins continuously
+
+
+def test_size_curve_decays_to_zero_when_oversized():
+    """A hugely oversized day must approach No surf, not plateau."""
+    sp = get_spot("lahinch")
+    hi = sp.swell_height_m[1]
+    assert scoring._size_quality(hi, sp) == 1.0
+    mid_over = scoring._size_quality(hi * 1.4, sp)
+    way_over = scoring._size_quality(hi * 2.0, sp)
+    assert 0 < mid_over < 1.0
+    assert way_over == 0.0                  # genuinely unsurfable
+    # and monotonically decreasing through the oversize band
+    seq = [scoring._size_quality(hi * f, sp) for f in (1.0, 1.2, 1.5, 1.8, 2.0)]
+    assert all(a >= b for a, b in zip(seq, seq[1:], strict=False))
+
+
+def test_oversized_day_scores_as_no_surf():
+    sp = get_spot("lahinch")
+    r = scoring.score_hour(
+        sp, wave_height_m=sp.swell_height_m[1] * 2.2, wave_period_s=14,
+        wave_from_deg=270, wind_speed_ms=3, wind_from_deg=90, tide_state="low")
+    assert r.flat is True and r.score == 0.0
+
+
 if __name__ == "__main__":
     # allow running without pytest
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

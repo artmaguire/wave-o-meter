@@ -107,34 +107,57 @@ def _period_quality(period_s: float, spot: Spot) -> float:
     return floor + (1.0 - floor) * (period_s - lo_s) / (hi_s - lo_s)
 
 
+# Size-curve shape. MARGINAL_BAND is the fraction of the workable minimum over
+# which surf ramps in (no hard cliff at the exact minimum); OVERSIZE_FACTOR is
+# how far above the workable max a spot becomes effectively unsurfable.
+MARGINAL_BAND = 0.35
+OVERSIZE_FACTOR = 2.0
+
+
 def _size_quality(height_m: float, spot: Spot) -> float:
-    """0-1 size quality across the spot's workable range, with a 'too big'
-    falloff above it (spots close out / turn to washing-machine when oversized)."""
+    """0-1 size quality for a spot's workable range.
+
+    Shape: ramps in gently from just under the workable minimum (real surf
+    doesn't switch on at an exact centimetre), rises to full quality by the top
+    of the range, then decays toward zero as it oversizes and starts closing out.
+    """
     lo, hi = spot.swell_height_m
-    if height_m < lo:
+
+    # Below the range: a marginal band that ramps 0 -> 0.55 rather than a cliff.
+    marginal_from = lo * (1.0 - MARGINAL_BAND)
+    if height_m <= marginal_from:
         return 0.0
+    if height_m < lo:
+        frac = (height_m - marginal_from) / max(0.05, lo - marginal_from)
+        return 0.7 * frac          # meets the in-range curve at exactly 0.7
+
+    # In range: 0.7 at the minimum rising to 1.0 partway up.
     if height_m <= hi:
-        # ramp from good (0.7) at the workable minimum to full (1.0) partway up
-        # the range — a solid in-range swell shouldn't be capped at "half".
         frac = (height_m - lo) / max(0.1, (hi - lo))
         return min(1.0, 0.7 + 0.5 * frac)
-    # above the workable max: decay — by ~1.5x the max it's largely unsurfable
-    over = (height_m - hi) / max(0.5, hi * 0.5)
-    return max(0.15, 1.0 - over)
+
+    # Oversized: decay smoothly to ~0 by OVERSIZE_FACTOR x the max, so a genuinely
+    # unsurfable day scores like one instead of plateauing.
+    unsurfable_at = hi * OVERSIZE_FACTOR
+    if height_m >= unsurfable_at:
+        return 0.0
+    frac = (height_m - hi) / max(0.1, unsurfable_at - hi)
+    return max(0.0, 1.0 - frac) ** 1.5
 
 
 def _base_from_size_period(height_m: float, period_s: float,
                            spot: Spot) -> float:
-    """Size & power -> 0-5 base, clamped to the spot's workable range.
+    """Size & power -> 0-5 base.
 
-    Below the workable minimum returns 0 (caller enforces the hard 'No surf'
-    floor). Combines a size-quality curve (with a too-big falloff) and a
-    per-break-type period-quality multiplier.
+    Combines the size-quality curve (which handles the marginal band below the
+    workable minimum and the oversize decay above the max) with a
+    per-break-type period-quality multiplier. Returns 0 only when the size
+    curve itself says there's nothing to surf — the caller turns that into the
+    hard "No surf" result.
     """
-    lo, _ = spot.swell_height_m
-    if height_m < lo:
-        return 0.0
     size_q = _size_quality(height_m, spot)
+    if size_q <= 0.0:
+        return 0.0
     period_q = _period_quality(period_s, spot)
     base = 5.0 * size_q * period_q
     # A 5 ("Very good") should be rare — reserved for genuinely standout,
