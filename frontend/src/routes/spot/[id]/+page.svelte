@@ -6,7 +6,7 @@
   import DayCard from '$lib/DayCard.svelte';
   import {
     ratingColor, dirArrow, fmtTime, fmtDayFull, fmtFt, fmtFtRange,
-    CONF_LABEL, CONF_COLOR, mToFt
+    CONF_LABEL, CONF_COLOR, mToFt, msToKmh
   } from '$lib/format.js';
 
   let data = $state(null);
@@ -259,9 +259,9 @@
                 {:else}·{/if}
               </span>
               <span class="c-wind">
-                <span class="val">{Math.round(h.wind.speed_ms)}<span class="unit">m/s</span></span>
+                <span class="val">{msToKmh(h.wind.speed_ms)}<span class="unit">km/h</span></span>
                 <span class="arrow" style="transform:{dirArrow(h.wind.direction_deg)}">↑</span>
-                <span class="sub rel-{h.wind.relation}">{h.wind.direction_compass}</span>
+                <span class="sub rel-{h.wind.relation}">{h.wind.relation}</span>
               </span>
               <span class="c-sea">
                 {#if h.components}

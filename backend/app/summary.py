@@ -150,13 +150,14 @@ def _weather_phrase(wx_by_date, date):
     bits = []
     wind = w.get("wind")
     if wind is not None:
+        kmh = round(wind * 3.6)
         if wind >= WIND_STRONG_MS:
-            gust = w.get("gust") or wind
-            bits.append(f"strong winds (to {round(gust)} m/s gusts) — likely messy/blown out")
+            gust_kmh = round((w.get("gust") or wind) * 3.6)
+            bits.append(f"strong winds (to {gust_kmh} km/h gusts) — likely messy/blown out")
         elif wind >= WIND_MODERATE_MS:
-            bits.append(f"moderate wind ({round(wind)} m/s)")
+            bits.append(f"moderate wind ({kmh} km/h)")
         else:
-            bits.append(f"light winds ({round(wind)} m/s) — cleaner faces")
+            bits.append(f"light winds ({kmh} km/h) — cleaner faces")
     if (w.get("rain") or 0) >= RAIN_WET_MM:
         bits.append("wet")
     if w.get("tmax") is not None:

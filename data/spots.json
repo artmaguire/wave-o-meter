@@ -61,7 +61,11 @@
       "hazards": "Submerged rocks near the point, especially at low tide; rips pull offshore on bigger swells.",
       "notes": "Long sandy beach break near Miltown Malbay with a point at one end — mellow rights and lefts, waist-to-head-high, forgiving and approachable. Works all tides, though mid tide usually shapes the best peaks. Fairly consistent year-round; best Sep-Mar on W/SW swell, up to 2-3 m in autumn/winter. Great for beginners and for practising turns; the point comes alive on bigger SW swells. Usually empty midweek. Avoid prolonged S or W winds — they chop it up.",
       "orientation_verified": true,
-      "links": {}
+      "links": {
+        "surfcheck": "https://www.surfcheck.org/ireland/clare/spanish-point",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/spanish-point",
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Spanish-Point/forecasts/latest"
+      }
     },
     {
       "id": "lahinch",

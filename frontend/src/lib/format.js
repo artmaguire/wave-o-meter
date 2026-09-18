@@ -103,3 +103,9 @@ export function qualitySymbol(score) {
 export const CONF_SYMBOL = {
   high: '●', medium: '◐', low: '○', long_range: '·'
 };
+
+// m/s -> km/h (wind is fetched in m/s for scoring; displayed in km/h).
+export function msToKmh(ms) {
+  if (ms == null) return null;
+  return Math.round(ms * 3.6);
+}

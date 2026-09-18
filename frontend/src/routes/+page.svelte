@@ -131,8 +131,12 @@
         <li><strong>Sea</strong> — <em>clean</em> means long-period groundswell
           (better-shaped, cleaner waves); <em>choppy</em> means wind-driven sea
           (messier). Clean swell scores higher than choppy of the same size.</li>
-        <li><strong>Swell / Wind / Tide</strong> — the raw conditions per hour,
-          with wind shown as offshore (good), cross-shore, or onshore (poor).</li>
+        <li><strong>Swell / Wind / Tide</strong> — the raw conditions per hour.
+          Wind is in <strong>km/h</strong> with its direction relative to the
+          break: <em>offshore</em> (blowing out to sea — holds the wave up, the
+          best wind), <em>cross-shore</em> (along the beach — workable), or
+          <em>onshore</em> (blowing in — crumbly and messy, the worst). Wind
+          direction matters as much as strength.</li>
         <li><strong>Wave height</strong> — the <em>total</em> sea state (groundswell
           plus local wind chop) converted to surf-face feet, i.e. roughly what
           you'd see in the water. The Sea column tells you which of the two is

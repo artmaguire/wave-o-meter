@@ -186,22 +186,19 @@ def test_compass_and_none():
     assert forecast.compass(None) is None
 
 
-def test_rating_trend_improving_and_dropping():
+def test_rating_trend_over_days():
     from app import forecast
-    now = time.time()
-    from datetime import datetime, timezone
 
-    def mk(offsets_scores):
-        hrs = []
-        for off, sc in offsets_scores:
-            t = datetime.fromtimestamp(now + off * 3600, timezone.utc)
-            hrs.append({"time": t.isoformat(), "score": sc})
-        return hrs
+    def days(day_bests):
+        # each day -> parts carrying the day's best score
+        return [{"parts": [{"score": b}]} for b in day_bests]
 
-    up = forecast._rating_trend(mk([(0, 1.0), (1, 2.0), (2, 3.0)]))
-    down = forecast._rating_trend(mk([(0, 4.0), (1, 3.0), (2, 2.0)]))
-    flat = forecast._rating_trend(mk([(0, 3.0), (1, 3.0), (2, 3.0)]))
-    assert up == "improving" and down == "dropping" and flat == "steady"
+    # today low, next days higher -> improving
+    assert forecast._rating_trend(days([2.0, 3.0, 4.0])) == "improving"
+    # today high, next days lower -> dropping
+    assert forecast._rating_trend(days([4.0, 3.0, 2.0])) == "dropping"
+    # flat week -> steady
+    assert forecast._rating_trend(days([3.0, 3.0, 3.0])) == "steady"
 
 
 # --- cache staleness ---

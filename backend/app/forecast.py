@@ -301,8 +301,8 @@ def build_overview() -> dict:
         try:
             fc = get_forecast(spot)
             entry["current"] = _current_hour(fc["hours"])
-            entry["trend"] = _rating_trend(fc["hours"])
             days = fc.get("days") or dayparts.build_days(fc["hours"])
+            entry["trend"] = _rating_trend(days)
             entry["days"] = days[:7]
             entry["pending"] = False
         except Exception as e:  # noqa: BLE001
@@ -361,21 +361,25 @@ def _current_hour(hours: list[dict]) -> dict | None:
     return best
 
 
-def _rating_trend(hours: list[dict]) -> str:
-    """improving / steady / dropping over the next ~6h from now."""
-    now = datetime.now(timezone.utc)
-    future = [(datetime.fromisoformat(h["time"]), h.get("score"))
-              for h in hours if h.get("score") is not None
-              and datetime.fromisoformat(h["time"]) >= now]
-    future.sort()
-    if len(future) < 2:
+def _rating_trend(days: list[dict]) -> str:
+    """improving / steady / dropping across the next few DAYS.
+
+    The arrow sits next to the 7-day calendar, so it should describe where the
+    week is heading — today's best vs the best of the next 2-3 days — not the
+    next few hours (which felt wrong when a flat morning preceded a building
+    week).
+    """
+    def day_best(d):
+        return max((p.get("score") or 0) for p in d.get("parts", [])) if d.get("parts") else 0
+
+    week = days[:5]
+    if len(week) < 2:
         return "steady"
-    cur = future[0][1]
-    window = [s for _, s in future[:7]]
-    later = max(window[1:]) if len(window) > 1 else cur
-    if later - cur >= 0.6:
+    today = day_best(week[0])
+    ahead = [day_best(d) for d in week[1:4]]
+    if max(ahead) - today >= 0.6:
         return "improving"
-    if cur - min(window[1:]) >= 0.6:
+    if today - max(ahead) >= 0.6:      # even the best day ahead is well below today
         return "dropping"
     return "steady"
 
