@@ -162,7 +162,7 @@ def _fc_days(scores_by_day):
 def test_summary_has_sections_and_verdict():
     fc = _fc_days({"2026-09-20": [4, 4, 3], "2026-09-21": [2, 2, 2]})
     out = summary.build_summary([("Lahinch", fc)])
-    assert "verdict" in out and out["current"] and out["best"] and out["narrative"]
+    assert "verdict" in out and out["current"] and out["best"] and out["outlook"]
 
 
 def test_summary_quiet_week_when_all_poor():

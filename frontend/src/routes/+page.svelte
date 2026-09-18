@@ -18,6 +18,26 @@
     catch (e) { error = e.message; }
     finally { loading = false; }
   }
+  // Render **bold** markers from the summary text (content is app-generated).
+  function md(text) {
+    return String(text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  // "Spot — Day part: Quality (n/5), H ft" -> parts for a richer row
+  function parseBest(line) {
+    const m = String(line).match(/^(.+?)\s+—\s+(.+?):\s+(.+?)\s+\((\d)\/5\),\s+(.+)$/);
+    if (!m) return { raw: line };
+    return { spot: m[1], when: m[2], quality: m[3], score: Number(m[4]), size: m[5] };
+  }
+  const PART_ICON = { morning: '🌅', midday: '☀️', evening: '🌇' };
+  function partIcon(when) {
+    const w = String(when).toLowerCase();
+    for (const k of Object.keys(PART_ICON)) if (w.includes(k)) return PART_ICON[k];
+    return '🏄';
+  }
+
   let accuracy = $state(null);
   async function loadAccuracy() {
     try { accuracy = await getAccuracy(); } catch { accuracy = null; }
@@ -113,6 +133,10 @@
           (messier). Clean swell scores higher than choppy of the same size.</li>
         <li><strong>Swell / Wind / Tide</strong> — the raw conditions per hour,
           with wind shown as offshore (good), cross-shore, or onshore (poor).</li>
+        <li><strong>Wave height</strong> — the <em>total</em> sea state (groundswell
+          plus local wind chop) converted to surf-face feet, i.e. roughly what
+          you'd see in the water. The Sea column tells you which of the two is
+          dominant.</li>
         <li><strong>Power</strong> — how hard the waves hit, from height and period
           (power rises with the <em>square</em> of height and with period, so a
           long-period swell packs far more punch than a short one the same size).
@@ -164,19 +188,45 @@
           <h2>Forecast summary</h2>
           <button class="x" onclick={() => showSummary = false} aria-label="Close">✕</button>
         </div>
+        <div class="modal-body">
         {#if summaryLoading}
           <p class="muted">Summarising…</p>
         {:else if summary?.error}
           <p class="err">Couldn't build summary: {summary.error}</p>
         {:else if summary}
-          {#if summary.verdict}<p class="verdict">{summary.verdict}</p>{/if}
+          {#if summary.verdict}<p class="verdict">{@html md(summary.verdict)}</p>{/if}
+
           <h3>Right now</h3>
           <ul>{#each summary.current as l}<li>{l}</li>{/each}</ul>
+
           <h3>Best windows (next 7 days)</h3>
-          <ul>{#each summary.best as l}<li>{l}</li>{/each}</ul>
-          <h3>The week ahead — swell &amp; weather</h3>
-          <ul class="narrative">{#each summary.narrative as l}<li>{l}</li>{/each}</ul>
+          <ul class="bestlist">
+            {#each summary.best as l}
+              {@const b = parseBest(l)}
+              {#if b.raw}
+                <li>{b.raw}</li>
+              {:else}
+                <li class="bestrow">
+                  <span class="bscore" style="background:{ratingColor(b.score)}">{b.score}</span>
+                  <span class="bmain">
+                    <span class="bspot">{b.spot}</span>
+                    <span class="bwhen">{partIcon(b.when)} {b.when}</span>
+                  </span>
+                  <span class="bmeta">
+                    <span class="bqual" style="color:{ratingColor(b.score)}">{b.quality}</span>
+                    <span class="bsize">🌊 {b.size}</span>
+                  </span>
+                </li>
+              {/if}
+            {/each}
+          </ul>
+
+          <h3>How it's changing</h3>
+          {#each summary.outlook as para}
+            <p class="outlook">{@html md(para)}</p>
+          {/each}
         {/if}
+        </div>
       </div>
     </div>
   {/if}
@@ -199,11 +249,15 @@
     display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal { background: var(--bg-elev); border: 1px solid var(--border);
     border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: var(--maxw);
-    max-height: 85vh; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-6);
-    animation: slideup .2s ease; }
+    max-height: 85vh; padding: 0; animation: slideup .2s ease;
+    display: flex; flex-direction: column; overflow: hidden; }
+  /* header is a flex sibling, so it stays put while only the body scrolls */
+  .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 0 var(--sp-4) var(--sp-6); }
   @keyframes slideup { from { transform: translateY(100%); } to { transform: none; } }
   .modal-head { display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; background: var(--bg-elev); padding-bottom: var(--sp-2); }
+    flex: 0 0 auto; background: var(--bg-elev); padding: var(--sp-4) var(--sp-4) var(--sp-3);
+    border-bottom: 1px solid var(--border); }
   .modal-head h2 { font-size: 1.2rem; }
   .x { background: none; border: 0; color: var(--text-dim); font-size: 1.1rem; cursor: pointer; }
   .modal h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
@@ -212,7 +266,23 @@
   .modal li { margin-bottom: 4px; font-size: .92rem; }
   .verdict { background: var(--bg-card); border-left: 3px solid var(--accent);
     padding: var(--sp-3); border-radius: 8px; font-size: .95rem; line-height: 1.5; margin: 0; }
-  .narrative li { margin-bottom: var(--sp-2); line-height: 1.5; }
+  .outlook { font-size: .92rem; line-height: 1.55; margin: var(--sp-3) 0 0; }
+  .outlook :global(strong) { color: var(--text); font-weight: 600; }
+  .verdict :global(strong) { font-weight: 600; }
+
+  .bestlist { list-style: none; padding: 0; margin: var(--sp-2) 0 0; }
+  .bestrow { display: flex; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); }
+  .bestrow:last-child { border-bottom: 0; }
+  .bscore { width: 28px; height: 28px; border-radius: 8px; color: #04101f;
+    font-weight: 700; font-size: .9rem; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .bmain { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .bspot { font-weight: 600; font-size: .92rem; }
+  .bwhen { font-size: .78rem; color: var(--text-dim); }
+  .bmeta { display: flex; flex-direction: column; align-items: flex-end; flex: 0 0 auto; }
+  .bqual { font-size: .82rem; font-weight: 600; }
+  .bsize { font-size: .78rem; color: var(--text-dim); }
   @media (min-width: 640px) {
     .modal-bg { align-items: center; }
     .modal { border-radius: var(--radius); }

@@ -182,32 +182,95 @@ def _at(seq, i):
     return seq[i] if seq and i < len(seq) else None
 
 
-def _narrative_section(spots_forecasts, dates, weather):
-    """Day-by-day swell + weather narrative. Returns (lines, good_day_count)."""
+def _outlook_paragraph(spots_forecasts, dates, weather):
+    """A flowing prose outlook: how conditions are changing and what's coming.
+
+    Replaces the old day-by-day list. Uses **bold** markers (rendered by the UI)
+    to keep the key facts scannable. Returns (paragraphs, good_day_count).
+    """
     ref_fc = spots_forecasts[0][1] if spots_forecasts else {}
     trend = _trend(ref_fc, dates)
-    wx_by_date = _weather_by_date(weather)
+    wx = _weather_by_date(weather)
+    horizon = dates[:NARRATIVE_DAYS]
+    if not horizon:
+        return [], 0
 
-    lines, good_days = [], 0
-    for idx, date in enumerate(dates[:NARRATIVE_DAYS]):
-        parts = []
-        sp = _swell_phrase(trend, idx)
-        if sp:
-            parts.append(sp)
-        wp = _weather_phrase(wx_by_date, date)
-        if wp:
-            parts.append(wp)
-
-        headline = f"{_day_label(date)}: " + ", ".join(parts) if parts else f"{_day_label(date)}:"
+    # classify each day: is anything surfable, and how big/windy is it
+    days = []
+    for idx, date in enumerate(horizon):
         good = _good_spots_on(spots_forecasts, date)
-        if good:
-            good_days += 1
-            names = ", ".join(n for n, _, _ in good[:3])
-            headline += f". {_verdict_word(good[0][1])} at {names}"
+        w = wx.get(date) or {}
+        label = _day_label(date)
+        if idx >= 7:                      # second occurrence of that weekday
+            label = f"next {label}"
+        days.append({
+            "date": date, "label": label, "good": good,
+            "height": trend[idx] if idx < len(trend) else None,
+            "wind": w.get("wind"), "rain": w.get("rain"),
+        })
+    good_days = sum(1 for d in days if d["good"])
+
+    # --- paragraph 1: right now / next couple of days ---
+    p1 = []
+    first = days[0]
+    h0 = _ft(first["height"])
+    if h0:
+        p1.append(f"Right now there's around **{h0} ft** of swell about.")
+    if first["good"]:
+        names = ", ".join(n for n, _, _ in first["good"][:2])
+        p1.append(f"{first['label']} is the pick of it — **{names}** "
+                  f"{'are' if len(first['good']) > 1 else 'is'} working.")
+    else:
+        p1.append(f"{first['label']} is off the boil — nothing above Fair.")
+    # short-term direction of travel
+    later = [d for d in days[1:4] if d["height"] is not None]
+    if later and first["height"] is not None:
+        diff = later[-1]["height"] - first["height"]
+        if diff > SWELL_TREND_M:
+            p1.append(f"It **builds** over the next few days, up to around "
+                      f"**{_ft(later[-1]['height'])} ft**.")
+        elif diff < -SWELL_TREND_M:
+            p1.append(f"It **eases back** over the next few days, down to about "
+                      f"**{_ft(later[-1]['height'])} ft**.")
         else:
-            headline += ". Nothing standout — small or off."
-        lines.append(headline)
-    return lines, good_days
+            p1.append("It **holds** at a similar size through midweek.")
+
+    # --- paragraph 2: where the good windows are ---
+    p2 = []
+    windows = [d for d in days if d["good"]]
+    if windows:
+        best = max(windows, key=lambda d: d["good"][0][1])
+        bn = ", ".join(n for n, _, _ in best["good"][:3])
+        p2.append(f"The standout looks like **{best['label']}** — "
+                  f"{_verdict_word(best['good'][0][1]).lower()} at **{bn}**.")
+        # name at most three other days, ranked by how good they get
+        others = sorted((d for d in windows if d is not best),
+                        key=lambda d: d["good"][0][1], reverse=True)[:3]
+        if others:
+            names = ", ".join(d["label"] for d in others)
+            p2.append(f"**{names}** also worth a look.")
+        p2.append(f"In all, **{good_days} of the next {len(days)} days** have a "
+                  f"surfable window somewhere.")
+    else:
+        p2.append("**No standout days** in the outlook — everything stays small "
+                  "or blown out.")
+
+    # --- paragraph 3: weather / wind caveat ---
+    p3 = []
+    windy = [d for d in days if (d["wind"] or 0) >= WIND_STRONG_MS]
+    calm = [d for d in days if d["wind"] is not None and d["wind"] < WIND_MODERATE_MS]
+    wet = [d for d in days if (d["rain"] or 0) >= RAIN_WET_MM]
+    if calm:
+        p3.append(f"**Lightest winds** (cleanest faces) on "
+                  f"**{', '.join(d['label'] for d in calm[:3])}**.")
+    if windy:
+        p3.append(f"Expect it **messy or blown out** on "
+                  f"**{', '.join(d['label'] for d in windy[:3])}**.")
+    if wet:
+        p3.append(f"Wet on {', '.join(d['label'] for d in wet[:3])}.")
+
+    paras = [" ".join(p) for p in (p1, p2, p3) if p]
+    return paras, good_days
 
 
 def _verdict_line(windows, good_days):
@@ -226,7 +289,7 @@ def build_summary(spots_forecasts, weather=None) -> dict:
 
     current = _current_section(spots_forecasts, now)
     best, windows = _best_windows(spots_forecasts)
-    narrative, good_days = _narrative_section(spots_forecasts, dates, weather)
+    outlook, good_days = _outlook_paragraph(spots_forecasts, dates, weather)
     verdict = _verdict_line(windows, good_days)
 
     return {
@@ -234,5 +297,5 @@ def build_summary(spots_forecasts, weather=None) -> dict:
         "verdict": verdict,
         "current": current,
         "best": best,
-        "narrative": narrative,
+        "outlook": outlook,
     }

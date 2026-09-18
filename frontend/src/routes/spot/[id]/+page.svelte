@@ -40,6 +40,18 @@
   }
 
   const spot = $derived(data?.spot);
+  // Break the notes into readable paragraphs (~2 sentences each) so the local
+  // knowledge block isn't one dense wall of text.
+  const noteParagraphs = $derived.by(() => {
+    const text = (spot?.notes ?? '').trim();
+    if (!text) return [];
+    const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [text];
+    const out = [];
+    for (let i = 0; i < sentences.length; i += 2) {
+      out.push(sentences.slice(i, i + 2).join('').trim());
+    }
+    return out.filter(Boolean);
+  });
   const days = $derived(data?.days ?? []);
   const selDay = $derived(days.find((d) => d.date === selDate) ?? null);
   // hours belonging to the selected day
@@ -165,6 +177,7 @@
           <span class="tag">{spot.skill}</span>
         </div>
       </div>
+      <a class="logbtn" href="/log?spot={id}">+ Log session</a>
     </header>
 
     <!-- Surfline-style horizontal day scrubber -->
@@ -185,6 +198,21 @@
         <strong>{fmtDayFull(selDay.date)}</strong>
         <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
       </div>
+      {#each bestWindows as w, wi}
+        <div class="bestbox">
+          <span class="star">★</span>
+          <div>
+            <strong>{wi === 0 ? 'Best' : 'Also'} {w.label}</strong> — {w.reason}
+            {#if w.peak.components?.secondary}
+              <div class="secswell muted">
+                + secondary swell {mToFt(w.peak.components.secondary.height_m).toFixed(1)}ft
+                {w.peak.components.secondary.period_s}s from {w.peak.components.secondary.dir_compass}
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/each}
+
       <!-- conditions strip: weather, wetsuit, daylight -->
       <div class="condstrip">
         {#if selDay.weather}<span class="cond">{selDay.weather}</span>{/if}
@@ -251,26 +279,12 @@
       {#if !selHours.length}
         <p class="muted empty">No hourly data for this day.</p>
       {/if}
-      {#each bestWindows as w, wi}
-        <div class="bestbox">
-          <span class="star">★</span>
-          <div>
-            <strong>{wi === 0 ? 'Best' : 'Also'} {w.label}</strong> — {w.reason}
-            {#if w.peak.components?.secondary}
-              <div class="secswell muted">
-                + secondary swell {mToFt(w.peak.components.secondary.height_m).toFixed(1)}ft
-                {w.peak.components.secondary.period_s}s from {w.peak.components.secondary.dir_compass}
-              </div>
-            {/if}
-          </div>
-        </div>
-      {/each}
     {/if}
 
     <!-- local knowledge -->
     <section class="knowledge">
       <h2>Local knowledge</h2>
-      {#if spot.notes}<p>{spot.notes}</p>{/if}
+      {#each noteParagraphs as para}<p>{para}</p>{/each}
       {#if spot.hazards}<p class="hazard">⚠ {spot.hazards}</p>{/if}
       <p class="muted small">Prefers {spot.tide_pref} tide.</p>
       {#if !spot.orientation_verified}
@@ -298,10 +312,7 @@
 
     <!-- session log: your own observations (calibration foundation) -->
     <section class="log">
-      <div class="loghead">
-        <h2>Your sessions</h2>
-        <a class="logbtn" href="/log?spot={id}">+ Log a session</a>
-      </div>
+      <h2>Your sessions</h2>
 
       {#if logs.length}
         <ul class="loglist">
@@ -346,7 +357,11 @@
   .compare a { background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 999px; padding: 9px 16px; font-size: .9rem; font-weight: 500;
     color: var(--accent); }
-  header { margin-bottom: var(--sp-4); }
+  header { margin-bottom: var(--sp-4); display: flex;
+    justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
+  .logbtn { background: var(--accent); color: #04101f; border-radius: 999px;
+    padding: 8px 14px; font-size: .84rem; font-weight: 600; white-space: nowrap;
+    flex: 0 0 auto; }
   h1 { font-size: 1.5rem; }
   .tags { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); flex-wrap: wrap; }
   .tag { font-size: .72rem; text-transform: capitalize; background: var(--bg-elev);

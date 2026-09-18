@@ -42,14 +42,14 @@ def wetsuit_for(sst: float | None) -> str | None:
     if sst is None:
         return None
     if sst >= 17:
-        return "4/3 mm (3/2 if you run warm)"
+        return "4/3 mm"
     if sst >= 14:
-        return "4/3 mm + booties"
+        return "4/3 mm"
     if sst >= 12:
-        return "4/3 or 5/4 mm + booties"
+        return "4/3 or 5/4 mm"
     if sst >= 10:
-        return "5/4 mm hooded + boots & gloves"
-    return "5/4/3 mm hooded + boots & gloves"
+        return "5/4 mm hooded"
+    return "5/4/3 mm hooded"
 
 
 def _weather_desc(code: int | None) -> str | None:
