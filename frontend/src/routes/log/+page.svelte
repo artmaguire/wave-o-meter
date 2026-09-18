@@ -43,6 +43,12 @@
     }
   });
 
+  // Where we came from: /log?spot=<id> should return to that spot, not the list.
+  const fromSpot = $derived($page.url.searchParams.get('spot') ?? '');
+  const fromSpotName = $derived(
+    spots.find((s) => s.id === fromSpot)?.name ?? 'Back'
+  );
+
   // group spots by county for the picker
   const byCounty = $derived.by(() => {
     const m = new Map();
@@ -74,7 +80,11 @@
 </script>
 
 <div class="container">
-  <a class="back" href="/">← All spots</a>
+  {#if fromSpot}
+    <a class="back" href="/spot/{fromSpot}">← {fromSpotName}</a>
+  {:else}
+    <a class="back" href="/">← All spots</a>
+  {/if}
   <h1>Log a session</h1>
   <p class="muted intro">
     Record what you actually saw. Over time this is what lets the forecast be

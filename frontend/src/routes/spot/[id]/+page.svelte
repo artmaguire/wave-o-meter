@@ -198,21 +198,6 @@
         <strong>{fmtDayFull(selDay.date)}</strong>
         <span class="muted">{fmtFtRange(selDay.height_min, selDay.height_max)} surf</span>
       </div>
-      {#each bestWindows as w, wi}
-        <div class="bestbox">
-          <span class="star">★</span>
-          <div>
-            <strong>{wi === 0 ? 'Best' : 'Also'} {w.label}</strong> — {w.reason}
-            {#if w.peak.components?.secondary}
-              <div class="secswell muted">
-                + secondary swell {mToFt(w.peak.components.secondary.height_m).toFixed(1)}ft
-                {w.peak.components.secondary.period_s}s from {w.peak.components.secondary.dir_compass}
-              </div>
-            {/if}
-          </div>
-        </div>
-      {/each}
-
       <!-- conditions strip: weather, wetsuit, daylight -->
       <div class="condstrip">
         {#if selDay.weather}<span class="cond">{selDay.weather}</span>{/if}
@@ -279,6 +264,20 @@
       {#if !selHours.length}
         <p class="muted empty">No hourly data for this day.</p>
       {/if}
+      {#each bestWindows as w, wi}
+        <div class="bestbox">
+          <span class="star">★</span>
+          <div>
+            <strong>{wi === 0 ? 'Best' : 'Also'} {w.label}</strong> — {w.reason}
+            {#if w.peak.components?.secondary}
+              <div class="secswell muted">
+                + secondary swell {mToFt(w.peak.components.secondary.height_m).toFixed(1)}ft
+                {w.peak.components.secondary.period_s}s from {w.peak.components.secondary.dir_compass}
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/each}
     {/if}
 
     <!-- local knowledge -->
