@@ -274,7 +274,7 @@
           <span class="star">★</span>
           <div>
             <strong>{wi === 0 ? 'Best' : 'Also'} {w.label}</strong> — {w.reason}
-            {#if w.peak.components?.secondary}
+            {#if w.peak?.components?.secondary}
               <div class="secswell muted">
                 + secondary swell {mToFt(w.peak.components.secondary.height_m).toFixed(1)}ft
                 {w.peak.components.secondary.period_s}s from {w.peak.components.secondary.dir_compass}
