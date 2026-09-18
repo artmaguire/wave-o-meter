@@ -27,8 +27,8 @@
         3.5
       ],
       "tide": "any",
-      "hazards": "DANGEROUS RIP CURRENTS — strong rips pull out across this bay and are the main hazard here; know your exits before paddling out. Exposed flat rocks at low tide on the reef side (left/north end) can cause impacts on closeouts. Big open beach: conditions and currents vary along its length.",
-      "notes": "Large, open beach — effectively two spots. The main sandy beach (what you'll normally surf) is a forgiving beach break working rights and lefts across all tides. There is ALSO a powerful left-hand reef over flat rocks to the LEFT (north) of the beach: that reef is advanced-only, needs 1.5 m+, and is best mid-high when the rocks are covered — it does NOT work all tides like the beach does. Very consistent year-round; best Oct-Mar. Rarely crowded.",
+      "hazards": "DANGEROUS RIP CURRENTS — strong rips pull out across this bay and are the main hazard; know your exits before paddling out. Exposed flat rocks at low tide on the reef side (left/north). Big open beach — conditions and currents vary along its length.",
+      "notes": "Large, open beach — effectively two spots. The main sandy beach (the usual surf) is a forgiving beach break, rights and lefts, working ALL tides. A separate powerful left-hand reef over flat rocks sits to the left/north: advanced only, needs 1.5 m+, best mid-high once the rocks are covered — it does NOT work all tides like the beach. Very consistent year-round; best Oct-Mar. Rarely crowded even when it's on.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/doughmore-bay-beach/61417c02e13493a6cb0b21d1",
@@ -57,7 +57,7 @@
       ],
       "tide": "low-mid",
       "hazards": "Rips on bigger swells; scattered rocks at the headland ends.",
-      "notes": "Pure beach break, rights and lefts, punchy A-frames on clean days. Low-mid tide gives the best shape. Peaks Sep-Mar. Often crowded but the beach is long enough to spread out.",
+      "notes": "Classic sandy beach break in front of the village — rights and lefts, punchy A-frames on clean days, holds to ~2 m. Best on low-mid tide. Regular consistency, peaks Sep-Mar on NW/W groundswell; summer is smaller but fun. Suits everyone: beginners inside, bigger winter lines outside. Surf shops, rentals and cafes on the beach. Often crowded, but it's long enough to find your own peak.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/lahinch-beach/584204204e65fad6a7709126",
@@ -85,8 +85,8 @@
         2.5
       ],
       "tide": "mid",
-      "hazards": "Rocks exposed at low tide; rips on bigger swells; summer jellyfish.",
-      "notes": "Beginner-friendly beach break over sand with some rock, rights and lefts. Mid tide is ideal. Decent consistency on NW swell; often empty midweek. Burren scenery.",
+      "hazards": "Rocks exposed at low tide; rips on bigger swells; jellyfish in summer (booties help).",
+      "notes": "Beginner-friendly beach break in the Burren — sand with some rock, rights and lefts, waist-to-head-high. Mid tide is the window. Decent consistency on NW swell, best Oct-Mar; can go flat midsummer. Usually empty midweek. Lifeguards in summer. Great for building confidence or a warm-up session.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/fanore-beach/640b9e51451905b052e0cc0d",
@@ -115,8 +115,8 @@
         3.5
       ],
       "tide": "high",
-      "hazards": "Rips and undertow over 1.5 m; rocks exposed at low tide.",
-      "notes": "Sheltered beach break (aka Killard), rights and lefts, mellow A-frames. HIGH tide only and best on a rising tide — it covers the rocks and makes the wave. Best Oct-Mar; usually empty.",
+      "hazards": "Rips and undertow, especially above 1.5 m; rocks exposed at low tide — part of why it needs high tide.",
+      "notes": "Sheltered beach break (aka Killard) near Doonbeg — mellow A-frames, rights and lefts, sand with rocky outcrops. HIGH tide only, and best on a RISING tide: that's what covers the rocks and makes the wave. Needs a decent swell (from ~2.5 m) to start working. Best Oct-Mar; flat most of summer. Almost always empty.",
       "orientation_verified": true,
       "links": {
         "surf_forecast": "https://www.surf-forecast.com/breaks/Killard/forecasts/latest"
@@ -144,7 +144,7 @@
       ],
       "tide": "any",
       "hazards": "Rocks in the take-off zone; rip off the pier on bigger swells. Boulder bottom — booties recommended.",
-      "notes": "Left-hand reef over boulders; hollow, fast, can barrel. Works all tides, low tide sharpens the take-off over the rocks. Peaks Dec-Feb on NW groundswell with S offshore.",
+      "notes": "Left-hand reef over boulders by the Easkey rivermouth — hollow, fast, barrels on the right swell. Works all tides; low tide sharpens the take-off over the rocks. Fairly consistent, best Dec-Feb on NW groundswell with a S offshore; often flat in summer. Fine for improvers on smaller days, proper reef wave when it's bigger. O'Dowd's Castle at the pier.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey/5842041f4e65fad6a7708c3d",
@@ -172,8 +172,8 @@
         3.0
       ],
       "tide": "low",
-      "hazards": "Sharp reef and rocks — precision needed. Avoid above ~1.8 m unless very experienced. Rivermouth rip pushes off the peak.",
-      "notes": "Powerful right-hand point over sharp reef; long walls, hollow when firing. LOW tide only for the cleanest shape. Use the rivermouth rip to get out. Remarkably consistent; best Nov-Mar.",
+      "hazards": "Sharp reef and rocks — precision essential. Avoid above ~1.8 m unless very experienced. Rocks wash in on bigger swells, and the rivermouth rip pushes you off the peak.",
+      "notes": "Powerful right-hand POINT break over sharp reef — long walls, hollow when it's firing, one of Ireland's best. LOW tide only for clean shape. Park right in front. Use the rivermouth rip to get out. Remarkably consistent, best Nov-Mar. Intermediate-plus: you need solid board control for the reef.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey-right/605108f4910e9d6e864795ae",
@@ -201,8 +201,8 @@
         2.0
       ],
       "tide": "mid-high",
-      "hazards": "Strong rips; rocks at low tide or after winter erosion. High tide can cut off access near the promenade.",
-      "notes": "Very consistent beach/sandbar break (~150 days/yr), rights and lefts off shifting banks. Mid-high tide is prime — low gets shorey and rocky. Best when swell stays under 2 m.",
+      "hazards": "Strong rips; rocks poke through at low tide or after winter erosion. High tide can cut off access near the promenade.",
+      "notes": "Very consistent beach/sandbar break under Knocknarea (~150 days a year) — rights and lefts off shifting banks, occasional hollow sections. Mid-high tide is prime; low gets shorey and rocky. Best when the swell stays under 2 m — big mid-winter swells close it out. Surf schools in the village, so good for progression. Low crowds on a wide beach.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/strandhill/5842041f4e65fad6a7708b58",
@@ -259,7 +259,7 @@
       ],
       "tide": "mid-high",
       "hazards": "Rips on bigger SW swells; exposed rocks at low tide.",
-      "notes": "Achill Island beach break over sand, lefts and rights, fun A-frames. Mid-high tide when the sandbars peak. Best Sep-Mar on SW swell with E/NE offshore. Quiet midweek.",
+      "notes": "Achill Island beach break over sand — lefts and rights, fun A-frames, waist-to-head-high. Needs SW swell (it won't work on the W/NW that suits the Clare/Sligo spots) with NE/E offshore. Mid-high tide when the sandbars peak. Fairly consistent, best Sep-Mar. Remote island setting; quiet midweek, busier weekends.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/keel-beach/584204204e65fad6a7709124",
@@ -288,8 +288,8 @@
         2.0
       ],
       "tide": "any",
-      "hazards": "Rips in bigger surf across the wide beach; no major rocks.",
-      "notes": "Brandon Bay / Maharees: long sandy beach break with multiple peaks, lefts and rights. Works all tides — very flexible. Mellow and forgiving; best Sep-Apr. Rarely crowded.",
+      "hazards": "Rips form in bigger surf across the wide beach — paddle wide to escape. No significant rocks.",
+      "notes": "Brandon Bay / the Maharees on the Dingle Peninsula — an 11 km sandy beach with multiple peaks (Gowlane, Dumps, Mozzies), lefts and rights. Works ALL tides, which makes it very flexible. Mellow and forgiving, ideal for beginners and longboarding; fun shapes for everyone on bigger days. Rarely flat, best Sep-Apr. Almost always empty.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/brandon-bay/584204204e65fad6a770945c",

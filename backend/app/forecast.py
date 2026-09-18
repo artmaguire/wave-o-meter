@@ -31,18 +31,25 @@ def _rnd(v, ndigits=2):
 
 
 def wetsuit_for(sst: float | None) -> str | None:
-    """Rough wetsuit guidance for Irish water temps (°C)."""
+    """Wetsuit guidance for Irish water temps (°C).
+
+    Calibrated to the Irish reality rather than generic tables: a 4/3 is the
+    year-round workhorse here. The spot guides agree — 7 of 9 call for a 4/3
+    through the 14-17 °C "summer" (Jun-Oct), stepping up to 5/4 hooded with
+    boots and gloves at 9-12 °C in winter. A 3/2 is only ever borderline on the
+    warmest days, so it's never the default.
+    """
     if sst is None:
         return None
-    if sst >= 19:
-        return "shorty / 2 mm"
-    if sst >= 16:
-        return "3/2 mm"
+    if sst >= 17:
+        return "4/3 mm (3/2 if you run warm)"
+    if sst >= 14:
+        return "4/3 mm + booties"
     if sst >= 12:
-        return "4/3 mm + boots"
-    if sst >= 9:
-        return "5/4 mm + boots & gloves"
-    return "5/4 hooded + boots & gloves"
+        return "4/3 or 5/4 mm + booties"
+    if sst >= 10:
+        return "5/4 mm hooded + boots & gloves"
+    return "5/4/3 mm hooded + boots & gloves"
 
 
 def _weather_desc(code: int | None) -> str | None:

@@ -116,13 +116,15 @@ def test_sessions_rating_clamped_and_notes_truncated():
 
 # --- forecast helpers ---
 
-def test_wetsuit_thresholds():
+def test_wetsuit_thresholds_irish_calibration():
     from app import forecast
-    assert forecast.wetsuit_for(20) is not None
-    assert "3/2" in forecast.wetsuit_for(16)
+    # Ireland: a 4/3 is the year-round workhorse — never default to 3/2
+    assert "4/3" in forecast.wetsuit_for(16)
+    assert "4/3" in forecast.wetsuit_for(14)
     assert forecast.wetsuit_for(None) is None
-    # colder water -> thicker suit mentioned
-    assert "5/4" in forecast.wetsuit_for(8)
+    # cold water steps up to 5/4 hooded
+    assert "5/4" in forecast.wetsuit_for(10)
+    assert "hooded" in forecast.wetsuit_for(8)
 
 
 def test_wave_power_formula_and_bands():
