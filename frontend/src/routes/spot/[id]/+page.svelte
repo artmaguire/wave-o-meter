@@ -224,6 +224,7 @@
             <span class="c-time">Time</span>
             <span class="c-surf">Surf</span>
             <span class="c-swell">Swell</span>
+            <span class="c-power">Power</span>
             <span class="c-wind">Wind</span>
             <span class="c-sea">Sea</span>
             <span class="c-tide">Tide</span>
@@ -242,6 +243,11 @@
                 <span class="val">{h.swell.period_s}<span class="unit">s</span></span>
                 <span class="arrow" style="transform:{dirArrow(h.swell.direction_deg)}">↑</span>
                 <span class="sub">{h.swell.direction_compass}</span>
+              </span>
+              <span class="c-power">
+                {#if h.power_label}
+                  <span class="pw pw-{h.power_label}" title="{h.power_kw_m} kW/m">{h.power_label}</span>
+                {:else}·{/if}
               </span>
               <span class="c-wind">
                 <span class="val">{Math.round(h.wind.speed_ms)}<span class="unit">m/s</span></span>
@@ -382,9 +388,9 @@
      instead of compressing/cutting off the tide column */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border); border-radius: var(--radius); }
-  .table { background: var(--bg-card); min-width: 520px; }
+  .table { background: var(--bg-card); min-width: 620px; }
   .thead, .trow { display: grid;
-    grid-template-columns: 4.2rem 4.8rem 5.2rem 5.6rem 3.4rem 3.4rem;
+    grid-template-columns: 4.2rem 4.8rem 5rem 4.6rem 5.4rem 3.2rem 3.2rem;
     align-items: center; column-gap: var(--sp-3);
     padding: var(--sp-3) var(--sp-4); }
   .thead { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
@@ -418,6 +424,14 @@
   .rel-cross-shore { color: var(--r3); }
   .c-tide { text-transform: capitalize; font-size: .85rem; color: var(--text-dim); }
   .c-sea { font-size: .8rem; }
+  .c-power { font-size: .8rem; }
+  .pw { padding: 2px 6px; border-radius: 999px; font-size: .72rem; font-weight: 600;
+    white-space: nowrap; }
+  .pw-gentle { background: color-mix(in srgb, var(--text-dim) 22%, transparent); color: var(--text-dim); }
+  .pw-moderate { background: color-mix(in srgb, var(--r3) 22%, transparent); color: var(--r3); }
+  .pw-punchy { background: color-mix(in srgb, var(--r4) 22%, transparent); color: var(--r4); }
+  .pw-powerful { background: color-mix(in srgb, var(--r5) 24%, transparent); color: var(--r5); }
+  .pw-heavy { background: color-mix(in srgb, var(--r1) 24%, transparent); color: var(--r1); }
   .seahint { font-size: .76rem; margin-top: var(--sp-2); line-height: 1.4; }
   .seatype { padding: 2px 7px; border-radius: 999px; font-size: .74rem; font-weight: 600; }
   .seatype-swell { background: color-mix(in srgb, var(--r4) 22%, transparent); color: var(--r4); }

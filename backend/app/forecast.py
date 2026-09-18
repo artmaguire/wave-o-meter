@@ -62,6 +62,38 @@ def _weather_desc(code: int | None) -> str | None:
     return m.get(int(code), None)
 
 
+def wave_power_kw_m(height_m: float | None, period_s: float | None) -> float | None:
+    """Deep-water wave power per metre of crest, in kW/m.
+
+    P = (rho * g^2 / 64pi) * H^2 * T  ~= 0.49 * H^2 * T  (kW/m, H in m, T in s)
+    Power scales with the SQUARE of height and linearly with period, which is
+    why a long-period swell hits far harder than a short-period one of the same
+    size — the number surfers feel as "punch".
+    """
+    if height_m is None or period_s is None:
+        return None
+    return round(0.49 * (height_m ** 2) * period_s, 1)
+
+
+# Power bands (kW/m) -> label. Tuned for Irish beach/reef surf: ~10 is a soft
+# small day, ~30 is solid and punchy, 60+ is heavy.
+_POWER_BANDS = [
+    (8, "gentle"),
+    (20, "moderate"),
+    (40, "punchy"),
+    (70, "powerful"),
+]
+
+
+def power_label(kw_m: float | None) -> str | None:
+    if kw_m is None:
+        return None
+    for limit, label in _POWER_BANDS:
+        if kw_m < limit:
+            return label
+    return "heavy"
+
+
 def _wave_components(fc, i) -> dict:
     """Groundswell vs wind-wave split — the key surf-quality signal.
     Clean long-period groundswell surfs far better than messy wind chop of the
@@ -157,6 +189,8 @@ def build_forecast(spot: Spot) -> dict:
                 "relation": _wind_relation(wdir, spot),
             },
             "components": _wave_components(fc, i),
+            "power_kw_m": wave_power_kw_m(hs, tp),
+            "power_label": power_label(wave_power_kw_m(hs, tp)),
             "sea_temp_c": _rnd(fc.sea_temp[i], 1),
             "tide": {"state": ts},
             "confidence": conf,

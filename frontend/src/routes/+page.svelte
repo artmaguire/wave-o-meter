@@ -113,6 +113,12 @@
           (messier). Clean swell scores higher than choppy of the same size.</li>
         <li><strong>Swell / Wind / Tide</strong> — the raw conditions per hour,
           with wind shown as offshore (good), cross-shore, or onshore (poor).</li>
+        <li><strong>Power</strong> — how hard the waves hit, from height and period
+          (power rises with the <em>square</em> of height and with period, so a
+          long-period swell packs far more punch than a short one the same size).
+          <em>gentle</em> → soft and small; <em>moderate</em> → normal beach-break
+          energy; <em>punchy</em> → solid, holds a good wall; <em>powerful</em> /
+          <em>heavy</em> → serious force, experience and the right board needed.</li>
         <li><strong>★ Best time</strong> — the top daylight hour to surf that day,
           with a plain-English reason (offshore wind, favourable tide, etc.).</li>
         <li><strong>Air / Sea temp &amp; wetsuit</strong> — plus sunrise, sunset

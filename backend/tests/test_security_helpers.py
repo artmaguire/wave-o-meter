@@ -125,6 +125,23 @@ def test_wetsuit_thresholds():
     assert "5/4" in forecast.wetsuit_for(8)
 
 
+def test_wave_power_formula_and_bands():
+    from app import forecast
+    # power scales with H^2 * T: doubling height ~4x power, doubling period ~2x
+    p1 = forecast.wave_power_kw_m(1.0, 10.0)
+    p2 = forecast.wave_power_kw_m(2.0, 10.0)
+    p3 = forecast.wave_power_kw_m(1.0, 20.0)
+    assert round(p2 / p1) == 4
+    assert round(p3 / p1) == 2
+    assert forecast.wave_power_kw_m(None, 10) is None
+    assert forecast.wave_power_kw_m(1.0, None) is None
+    # bands ascend sensibly
+    assert forecast.power_label(forecast.wave_power_kw_m(0.8, 8)) == "gentle"
+    assert forecast.power_label(forecast.wave_power_kw_m(2.5, 11)) == "punchy"
+    assert forecast.power_label(forecast.wave_power_kw_m(4.0, 14)) == "heavy"
+    assert forecast.power_label(None) is None
+
+
 def test_compass_and_none():
     from app import forecast
     assert forecast.compass(0) == "N"
