@@ -50,6 +50,27 @@
     surfcheck: 'SurfCheck',
     wavey: 'Wavey'
   };
+  // Beach-breakdown card rows (icon + label + value), skipping anything blank.
+  const profileRows = $derived.by(() => {
+    const p = spot?.profile ?? {};
+    const rows = [
+      ['🏄', 'Break type', p.break_type],
+      ['〰️', 'Wave direction', p.wave_direction],
+      ['🌊', 'Wave quality', p.wave_quality],
+      ['🕳️', 'Bottom', p.bottom],
+      ['💪', 'Power', p.power],
+      ['🧭', 'Swell direction', p.swell_dir],
+      ['💨', 'Wind direction', p.wind_dir],
+      ['📏', 'Size', p.size_ft],
+      ['🌗', 'Best tide', p.tide_position],
+      ['↕️', 'Tide movement', p.tide_movement],
+      ['🎚️', 'Skill', p.skill],
+    ];
+    return rows
+      .filter(([, , v]) => v)
+      .map(([icon, label, value]) => ({ icon, label, value }));
+  });
+
   const compareLinks = $derived(
     Object.entries(LINK_LABELS)
       .filter(([k]) => spot?.links?.[k])
@@ -316,6 +337,22 @@
       </section>
     {/if}
 
+    <!-- beach breakdown: the conditions card -->
+    {#if spot.profile}
+      <section class="breakdown">
+        <h2>Beach breakdown</h2>
+        <div class="bd-grid">
+          {#each profileRows as row}
+            <div class="bd-cell">
+              <span class="bd-icon">{row.icon}</span>
+              <span class="bd-k">{row.label}</span>
+              <span class="bd-v">{row.value}</span>
+            </div>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
     <!-- session log: your own observations (calibration foundation) -->
     <section class="log">
       <h2>Your sessions</h2>
@@ -478,4 +515,17 @@
   .lnotes { font-size: .85rem; margin-top: 4px; line-height: 1.4; }
   .ldel { background: none; border: 0; color: var(--text-dim); cursor: pointer;
     font-size: .9rem; flex: 0 0 auto; }
+
+  .breakdown { margin-top: var(--sp-5); }
+  .breakdown h2 { font-size: 1rem; margin-bottom: var(--sp-3); }
+  .bd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+  .bd-cell { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
+    column-gap: var(--sp-2); align-items: center;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: var(--sp-3); }
+  .bd-icon { grid-row: 1 / span 2; font-size: 1.1rem; }
+  .bd-k { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--text-dim); }
+  .bd-v { font-size: .9rem; font-weight: 600; text-transform: capitalize; }
+  @media (max-width: 380px) { .bd-grid { grid-template-columns: 1fr; } }
 </style>

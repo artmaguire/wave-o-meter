@@ -151,6 +151,20 @@ def test_session_vocab_exposed_for_dropdowns():
         assert key in sessions.VOCAB and sessions.VOCAB[key]
 
 
+def test_spot_profile_assembles_all_fields():
+    from app import forecast
+    from app.spots import get_spot
+    prof = forecast._spot_profile(get_spot("easkey_right"))
+    # stored profile fields + derived ones both present
+    for k in ("wave_direction", "bottom", "wave_quality", "power",
+              "tide_movement", "break_type", "skill", "swell_dir",
+              "wind_dir", "tide_position", "size_ft"):
+        assert k in prof and prof[k], f"missing {k}"
+    assert prof["break_type"] == "point"          # from metadata
+    assert "-" in prof["swell_dir"]               # compass range e.g. WSW-NNE
+    assert prof["size_ft"].endswith("ft")
+
+
 def test_wetsuit_thresholds_irish_calibration():
     from app import forecast
     # Ireland: a 4/3 is the year-round workhorse — never default to 3/2

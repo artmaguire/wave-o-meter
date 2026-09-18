@@ -35,6 +35,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Doughmore/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/clare/doughmore",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/doughmore"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sand & flat rock",
+        "wave_quality": "Normal",
+        "power": "Powerful",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -65,6 +72,13 @@
         "surfcheck": "https://www.surfcheck.org/ireland/clare/spanish-point",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/spanish-point",
         "surf_forecast": "https://www.surf-forecast.com/breaks/Spanish-Point/forecasts/latest"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sandy",
+        "wave_quality": "Normal",
+        "power": "Ordinary, fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -96,6 +110,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Lahinch/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/clare/lahinch-strand",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/lahinch-beach"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sandy",
+        "wave_quality": "Normal",
+        "power": "Ordinary, fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -127,6 +148,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Fanore/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/clare/fanore",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/fanore"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sand with rock",
+        "wave_quality": "Normal",
+        "power": "Ordinary, fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -156,6 +184,13 @@
       "orientation_verified": true,
       "links": {
         "surf_forecast": "https://www.surf-forecast.com/breaks/Killard/forecasts/latest"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sand with rock",
+        "wave_quality": "Normal",
+        "power": "Fun",
+        "tide_movement": "Rising"
       }
     },
     {
@@ -187,6 +222,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Left/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/sligo/easkey-left",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/easkey-left"
+      },
+      "profile": {
+        "wave_direction": "Left",
+        "bottom": "Boulders",
+        "wave_quality": "Regional classic",
+        "power": "Ordinary",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -218,6 +260,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Right/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/sligo/easkey-right",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/easkey-right"
+      },
+      "profile": {
+        "wave_direction": "Right",
+        "bottom": "Reef (sharp rock)",
+        "wave_quality": "Regional classic",
+        "power": "Powerful, ordinary, fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -249,6 +298,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Strandhill/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/sligo/strandhill",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/strandhill"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sand with rock",
+        "wave_quality": "Normal",
+        "power": "Ordinary, fun",
+        "tide_movement": "Rising"
       }
     },
     {
@@ -279,6 +335,13 @@
         "surfline": "https://www.surfline.com/surf-report/bertra-beach-murrisk-/614225683509a458801553ee",
         "surfcheck": "https://www.surfcheck.org/ireland/mayo/bertra-beach",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-mayo/bertra-beach-murrisk"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sandy",
+        "wave_quality": "Normal",
+        "power": "Fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -310,6 +373,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Keel/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/mayo/keel-beach",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-mayo/achill-island-keel-beach"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sandy",
+        "wave_quality": "Regional classic",
+        "power": "Fun",
+        "tide_movement": "Rising & falling"
       }
     },
     {
@@ -342,6 +412,13 @@
         "surf_forecast": "https://www.surf-forecast.com/breaks/Scraggane-Bay/forecasts/latest",
         "surfcheck": "https://www.surfcheck.org/ireland/kerry/sandy-beach",
         "wavey": "https://waveysurf.com/surf-forecast/ireland/county-kerry/brandon-bay"
+      },
+      "profile": {
+        "wave_direction": "Left & right",
+        "bottom": "Sandy",
+        "wave_quality": "Normal",
+        "power": "Fun, powerless",
+        "tide_movement": "Rising & falling"
       }
     }
   ]

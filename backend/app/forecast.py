@@ -238,6 +238,24 @@ def spot_meta(spot: Spot) -> dict:
         "tide_pref": spot.tide, "hazards": spot.hazards, "notes": spot.notes,
         "orientation_verified": spot.orientation_verified,
         "links": spot.links,
+        "profile": _spot_profile(spot),
+    }
+
+
+def _spot_profile(spot: Spot) -> dict:
+    """Full conditions card for the beach-breakdown UI, combining the stored
+    profile with the compass ranges derived from the scoring windows."""
+    def rng(w):
+        return f"{compass(w[0])}-{compass(w[1])}"
+    return {
+        **spot.profile,
+        "break_type": spot.break_type,
+        "skill": spot.skill,
+        "swell_dir": rng(spot.optimal_swell_dir),
+        "wind_dir": rng(spot.optimal_wind_dir),
+        "tide_position": spot.tide,
+        "size_ft": f"{round(spot.swell_height_m[0]*3.281*0.6)}"
+                   f"-{round(spot.swell_height_m[1]*3.281*0.6)} ft",
     }
 
 
