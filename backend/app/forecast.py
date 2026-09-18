@@ -221,6 +221,8 @@ def build_forecast(spot: Spot) -> dict:
             sst = day_hours[len(day_hours) // 2].get("sea_temp_c")
         d["sea_temp_c"] = sst
         d["wetsuit"] = wetsuit_for(sst)
+        d["windows"] = windows_mod.find_windows(
+            day_hours, d.get("sunrise"), d.get("sunset"))
 
     return {
         "spot": spot_meta(spot),

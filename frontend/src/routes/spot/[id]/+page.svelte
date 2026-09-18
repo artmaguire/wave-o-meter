@@ -137,57 +137,28 @@
     return `${a}–${endHr % 12 || 12}${endHr >= 12 ? 'pm' : 'am'}`;
   }
 
-  // Recommended surf windows that day. Any daylight hour that's Fair+ (>=3) is
-  // worth flagging — so a decent day nearly always gets a window/best time.
-  // Adjacent hours group into one window ONLY if they're genuinely similar
-  // (within SIMILAR of each other AND both still Fair+); a real dip or a big
-  // score change splits them, so distinct humps (e.g. morning + evening) show
-  // as separate windows rather than one long blur.
-  const WIN_ENTER = 3.0;    // Fair+ — worth surfing
-  const SIMILAR = 0.6;      // adjacent hours within this group together
-  const WORTH_SHOWING = 0.7; // secondary windows must be within this of the best
+  // Surf windows come from the BACKEND (app/windows.py) — self-calibrating and
+  // unit-tested, so they can't drift out of sync when the scoring changes. The
+  // frontend only presents them: label + a plain-English reason from the peak
+  // hour's breakdown.
   const bestWindows = $derived.by(() => {
-    const good = selHours.filter((h) => h.score != null && inDaylight(h));
-    const windows = [];
-    let run = [];
-    const flush = () => {
-      if (run.length) {
-        const peak = run.reduce((a, b) => (b.score > a.score ? b : a));
-        windows.push({ start: run[0], end: run[run.length - 1], peak,
-                       label: windowLabel(run[0], run[run.length - 1]),
-                       reason: windowReason(peak) });
-      }
-      run = [];
-    };
-    for (let i = 0; i < good.length; i++) {
-      const h = good[i];
-      if (h.score < WIN_ENTER) { flush(); continue; }
-      const prev = run[run.length - 1];
-      const consecutive = prev && hourNum(h.time) - hourNum(prev.time) === 1;
-      const similar = prev && Math.abs(h.score - prev.score) <= SIMILAR;
-      if (consecutive && similar) run.push(h);
-      else { flush(); run = [h]; }
-    }
-    flush();
-    // Strongest first, then prune noise: drop windows clearly worse than the
-    // day's best (so one standout hour doesn't get flanked by weaker
-    // "also" boxes), and show at most 3.
-    windows.sort((a, b) => b.peak.score - a.peak.score);
-    if (windows.length > 1) {
-      const top = windows[0].peak.score;
-      return windows
-        .filter((w, i) => i === 0 || top - w.peak.score <= WORTH_SHOWING)
-        .slice(0, 3);
-    }
-    return windows;
+    const wins = selDay?.windows ?? [];
+    return wins.map((w) => {
+      const peakH = selHours.find((h) => h.time === w.peak_time) ?? null;
+      const startH = { time: w.start };
+      const endH = { time: w.end };
+      return {
+        start: startH, end: endH, peak: peakH,
+        label: windowLabel(startH, endH),
+        reason: peakH ? windowReason(peakH) : 'the best conditions of the day.',
+      };
+    });
   });
   const windowTimes = $derived.by(() => {
     const set = new Set();
-    for (const w of bestWindows) {
+    for (const w of (selDay?.windows ?? [])) {
       for (const h of selHours) {
-        const t = new Date(h.time).getTime();
-        if (t >= new Date(w.start.time).getTime() &&
-            t <= new Date(w.end.time).getTime()) set.add(h.time);
+        if (h.time >= w.start && h.time <= w.end) set.add(h.time);
       }
     }
     return set;
