@@ -34,7 +34,12 @@ class Spot:
 
     @property
     def is_reef(self) -> bool:
-        return self.break_type == "reef"
+        """Reef-like: picky about swell direction, period and tide.
+
+        Point breaks over reef (e.g. Easkey Right) behave like reefs for
+        scoring purposes — far fussier than a forgiving sand beach.
+        """
+        return self.break_type in ("reef", "point")
 
     @property
     def display_name(self) -> str:

@@ -12,23 +12,23 @@
       "county": "Clare",
       "lat": 52.7571,
       "lon": -9.494,
-      "break_type": "beach",
+      "break_type": "reef",
       "skill": "intermediate",
       "optimal_swell_dir": [
-        290,
-        335
+        157,
+        292
       ],
       "optimal_wind_dir": [
-        120,
-        160
+        22,
+        202
       ],
       "swell_height_m": [
-        0.8,
-        3.5
+        1.5,
+        4.0
       ],
       "tide": "any",
-      "hazards": "Strong rips and rocks.",
-      "notes": "Exposed beach/reef break, very consistent, works year-round. Breaks left and right. Best: NW swell + SE offshore wind.",
+      "hazards": "Strong rips out of the bay; exposed flat rocks at low tide — impacts on closeouts.",
+      "notes": "Powerful left-hand reef over flat rocks; fast, hollow sections. Works all tides though mid-high smooths the rocks for safer take-offs. Very consistent; best Oct-Mar. Rarely crowded.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/doughmore-bay-beach/61417c02e13493a6cb0b21d1",
@@ -44,20 +44,20 @@
       "break_type": "beach",
       "skill": "beginner",
       "optimal_swell_dir": [
-        225,
-        315
+        202,
+        337
       ],
       "optimal_wind_dir": [
-        45,
-        100
+        22,
+        157
       ],
       "swell_height_m": [
         0.8,
-        3.0
+        2.5
       ],
       "tide": "low-mid",
-      "hazards": "Rocks and rips; rips near the pier at higher tides.",
-      "notes": "Exposed beach break, works year-round, often crowded. Some shelter from N winds. Best: W swell + NE offshore wind.",
+      "hazards": "Rips on bigger swells; scattered rocks at the headland ends.",
+      "notes": "Pure beach break, rights and lefts, punchy A-frames on clean days. Low-mid tide gives the best shape. Peaks Sep-Mar. Often crowded but the beach is long enough to spread out.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/lahinch-beach/584204204e65fad6a7709126",
@@ -71,22 +71,22 @@
       "lat": 53.1192,
       "lon": -9.2892,
       "break_type": "beach",
-      "skill": "intermediate",
+      "skill": "beginner",
       "optimal_swell_dir": [
-        235,
-        285
+        202,
+        337
       ],
       "optimal_wind_dir": [
-        70,
-        115
+        22,
+        157
       ],
       "swell_height_m": [
         0.8,
-        3.0
+        2.5
       ],
       "tide": "mid",
-      "hazards": "Rocks and rips.",
-      "notes": "Fairly exposed beach break, rarely crowded. Breaks left and right. Best: WSW swell + E offshore wind.",
+      "hazards": "Rocks exposed at low tide; rips on bigger swells; summer jellyfish.",
+      "notes": "Beginner-friendly beach break over sand with some rock, rights and lefts. Mid tide is ideal. Decent consistency on NW swell; often empty midweek. Burren scenery.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/fanore-beach/640b9e51451905b052e0cc0d",
@@ -103,20 +103,20 @@
       "break_type": "beach",
       "skill": "intermediate",
       "optimal_swell_dir": [
-        290,
-        335
+        247,
+        22
       ],
       "optimal_wind_dir": [
-        200,
-        247
+        67,
+        292
       ],
       "swell_height_m": [
-        0.8,
-        3.0
+        2.5,
+        3.5
       ],
-      "tide": "mid-high",
-      "hazards": "",
-      "notes": "Also known as Killard. Sheltered beach break, often working but flat in summer. Rarely crowded. Best: NW swell + SW offshore wind.",
+      "tide": "high",
+      "hazards": "Rips and undertow over 1.5 m; rocks exposed at low tide.",
+      "notes": "Sheltered beach break (aka Killard), rights and lefts, mellow A-frames. HIGH tide only and best on a rising tide — it covers the rocks and makes the wave. Best Oct-Mar; usually empty.",
       "orientation_verified": true,
       "links": {
         "surf_forecast": "https://www.surf-forecast.com/breaks/Killard/forecasts/latest"
@@ -131,20 +131,20 @@
       "break_type": "reef",
       "skill": "advanced",
       "optimal_swell_dir": [
-        280,
-        350
+        157,
+        22
       ],
       "optimal_wind_dir": [
-        180,
-        235
+        337,
+        202
       ],
       "swell_height_m": [
         1.0,
-        4.0
+        3.0
       ],
-      "tide": "low",
-      "hazards": "Rocks, rips and seaweed. Experienced surfers only.",
-      "notes": "Exposed left-hand reef by the rivermouth, dependable, works year-round, often crowded. Best: NW swell + S offshore wind.",
+      "tide": "any",
+      "hazards": "Rocks in the take-off zone; rip off the pier on bigger swells. Boulder bottom — booties recommended.",
+      "notes": "Left-hand reef over boulders; hollow, fast, can barrel. Works all tides, low tide sharpens the take-off over the rocks. Peaks Dec-Feb on NW groundswell with S offshore.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey/5842041f4e65fad6a7708c3d",
@@ -157,23 +157,23 @@
       "county": "Sligo",
       "lat": 54.29531327330237,
       "lon": -8.949364993890875,
-      "break_type": "reef",
+      "break_type": "point",
       "skill": "advanced",
       "optimal_swell_dir": [
-        270,
-        360
+        247,
+        22
       ],
       "optimal_wind_dir": [
-        135,
-        190
+        337,
+        202
       ],
       "swell_height_m": [
         1.0,
-        4.0
+        3.0
       ],
       "tide": "low",
-      "hazards": "Rocks in the line-up. Experienced surfers only.",
-      "notes": "Exposed right-hand reef, flat in summer, can get crowded. Best around low tide (works low to high). Best: NW swell + S offshore wind.",
+      "hazards": "Sharp reef and rocks — precision needed. Avoid above ~1.8 m unless very experienced. Rivermouth rip pushes off the peak.",
+      "notes": "Powerful right-hand point over sharp reef; long walls, hollow when firing. LOW tide only for the cleanest shape. Use the rivermouth rip to get out. Remarkably consistent; best Nov-Mar.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey-right/605108f4910e9d6e864795ae",
@@ -189,20 +189,20 @@
       "break_type": "beach",
       "skill": "intermediate",
       "optimal_swell_dir": [
-        270,
-        315
+        247,
+        22
       ],
       "optimal_wind_dir": [
-        90,
-        140
+        22,
+        157
       ],
       "swell_height_m": [
         0.8,
-        3.5
+        2.0
       ],
       "tide": "mid-high",
-      "hazards": "Strong rips and rocks in the line-up; not for beginners.",
-      "notes": "Exposed beach/sandbar break, mostly groundswell, works year-round, crowds when on. Best: WNW swell + SE offshore wind.",
+      "hazards": "Strong rips; rocks at low tide or after winter erosion. High tide can cut off access near the promenade.",
+      "notes": "Very consistent beach/sandbar break (~150 days/yr), rights and lefts off shifting banks. Mid-high tide is prime — low gets shorey and rocky. Best when swell stays under 2 m.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/strandhill/5842041f4e65fad6a7708b58",
@@ -246,20 +246,20 @@
       "break_type": "beach",
       "skill": "intermediate",
       "optimal_swell_dir": [
-        200,
-        275
+        202,
+        247
       ],
       "optimal_wind_dir": [
-        25,
-        70
+        67,
+        112
       ],
       "swell_height_m": [
         0.8,
-        3.5
+        2.0
       ],
-      "tide": "any",
-      "hazards": "",
-      "notes": "Achill Island exposed break, quite reliable, works year-round, rarely crowded. Best: SW swell + NE offshore wind.",
+      "tide": "mid-high",
+      "hazards": "Rips on bigger SW swells; exposed rocks at low tide.",
+      "notes": "Achill Island beach break over sand, lefts and rights, fun A-frames. Mid-high tide when the sandbars peak. Best Sep-Mar on SW swell with E/NE offshore. Quiet midweek.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/keel-beach/584204204e65fad6a7709124",
@@ -274,22 +274,22 @@
       "lat": 52.28700520723873,
       "lon": -10.03352101474724,
       "break_type": "beach",
-      "skill": "intermediate",
+      "skill": "beginner",
       "optimal_swell_dir": [
-        290,
-        335
+        247,
+        22
       ],
       "optimal_wind_dir": [
-        95,
-        140
+        67,
+        202
       ],
       "swell_height_m": [
         0.8,
-        3.5
+        2.0
       ],
       "tide": "any",
-      "hazards": "",
-      "notes": "Also known as Mossies. Sand beach on the Maharees peninsula, Brandon Bay. Best: NW swell + ESE offshore wind.",
+      "hazards": "Rips in bigger surf across the wide beach; no major rocks.",
+      "notes": "Brandon Bay / Maharees: long sandy beach break with multiple peaks, lefts and rights. Works all tides — very flexible. Mellow and forgiving; best Sep-Apr. Rarely crowded.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/brandon-bay/584204204e65fad6a770945c",
