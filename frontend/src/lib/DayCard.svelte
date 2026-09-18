@@ -52,7 +52,7 @@
     cursor: default;
     font: inherit; color: inherit;
   }
-  .day.full { min-width: 104px; }
+  .day.full { min-width: 118px; padding: var(--sp-4) var(--sp-3); }
   .day[disabled] { cursor: default; }
   .day:not([disabled]) { cursor: pointer; }
   .day.selected { border-color: var(--text); background: var(--bg-elev); }
@@ -69,5 +69,5 @@
 
   .bars { display: flex; justify-content: space-around; gap: 4px; margin-top: var(--sp-2); }
   .bar { flex: 1; height: 6px; border-radius: 3px; }
-  .full .bar { height: 8px; }
+  .full .bar { height: 10px; }
 </style>

@@ -206,11 +206,7 @@
     <header>
       <div>
         <h1>{spot.name}</h1>
-        <div class="tags">
-          <span class="tag">{spot.county}</span>
-          <span class="tag">{spot.break_type}</span>
-          <span class="tag">{spot.skill}</span>
-        </div>
+        <span class="sub-county muted">{spot.county}</span>
       </div>
       <a class="logbtn" href="/log?spot={id}">+ Log session</a>
     </header>
@@ -318,6 +314,22 @@
       {/each}
     {/if}
 
+    <!-- beach breakdown: the conditions card -->
+    {#if spot.profile}
+      <section class="breakdown">
+        <h2>Beach breakdown</h2>
+        <div class="bd-grid">
+          {#each profileRows as row}
+            <div class="bd-cell">
+              <span class="bd-icon">{row.icon}</span>
+              <span class="bd-k">{row.label}</span>
+              <span class="bd-v">{row.value}</span>
+            </div>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
     <!-- local knowledge -->
     <section class="knowledge">
       <h2>Local knowledge</h2>
@@ -335,22 +347,6 @@
         <div class="links">
           {#each compareLinks as l}
             <a href={l.url} target="_blank" rel="noopener noreferrer">{l.label} ↗</a>
-          {/each}
-        </div>
-      </section>
-    {/if}
-
-    <!-- beach breakdown: the conditions card -->
-    {#if spot.profile}
-      <section class="breakdown">
-        <h2>Beach breakdown</h2>
-        <div class="bd-grid">
-          {#each profileRows as row}
-            <div class="bd-cell">
-              <span class="bd-icon">{row.icon}</span>
-              <span class="bd-k">{row.label}</span>
-              <span class="bd-v">{row.value}</span>
-            </div>
           {/each}
         </div>
       </section>
@@ -409,9 +405,7 @@
     padding: 8px 14px; font-size: .84rem; font-weight: 600; white-space: nowrap;
     flex: 0 0 auto; }
   h1 { font-size: 1.5rem; }
-  .tags { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); flex-wrap: wrap; }
-  .tag { font-size: .72rem; text-transform: capitalize; background: var(--bg-elev);
-    color: var(--text-dim); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+  .sub-county { font-size: .82rem; display: block; margin-top: 2px; }
 
   .sec { font-size: .95rem; text-transform: uppercase; letter-spacing: .06em;
     color: var(--text-dim); margin: var(--sp-4) 0 var(--sp-3); }
@@ -501,9 +495,9 @@
   .foot { font-size: .8rem; margin-top: var(--sp-5); line-height: 1.5; }
   .err { color: var(--r1); }
 
-  .condstrip { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
-  .cond { font-size: .8rem; background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 999px; padding: 4px 10px; color: var(--text-dim); }
+  .condstrip { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 var(--sp-3); }
+  .cond { font-size: .72rem; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 8px; color: var(--text-dim); }
 
   .log { margin-top: var(--sp-6); background: var(--bg-card);
     border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); }
