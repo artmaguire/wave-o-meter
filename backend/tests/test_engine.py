@@ -95,14 +95,35 @@ def test_dayparts_three_parts_per_day():
     assert [p["part"] for p in days[0]["parts"]] == ["morning", "afternoon", "evening"]
 
 
-def test_dayparts_scores_averaged_per_part():
-    # morning hours 6-11 score 4, rest 2
+def test_dayparts_score_reflects_uniform_window():
+    # morning hours 6-11 all score 4 -> the part scores 4
     hours = []
     for i in range(24):
         hours.append(_hour(f"2026-09-20T{i:02d}:00", 4.0 if 6 <= i < 12 else 2.0))
     days = dayparts.build_days(hours)
     morning = next(p for p in days[0]["parts"] if p["part"] == "morning")
     assert morning["score"] == 4.0
+
+
+def test_dayparts_good_window_not_diluted_by_bad_hours():
+    """The real bug: a genuinely good run inside a daypart must not be averaged
+    away by later unsurfable hours (e.g. the tide dropping out)."""
+    # afternoon (12-17): 3.8 3.7 3.7 3.6 then 2.5 1.6
+    scores = {12: 3.8, 13: 3.7, 14: 3.7, 15: 3.6, 16: 2.5, 17: 1.6}
+    hours = [_hour(f"2026-09-20T{i:02d}:00", scores.get(i, 1.0)) for i in range(24)]
+    part = next(p for p in dayparts.build_days(hours)[0]["parts"]
+                if p["part"] == "afternoon")
+    assert part["score"] >= 3.5, "good window should survive the later drop-off"
+    assert part["score_avg"] < part["score"], "mean is lower than sustained best"
+
+
+def test_dayparts_single_fluke_hour_does_not_inflate():
+    # one standout hour amid poor ones must not make the part look good
+    scores = {13: 5.0}
+    hours = [_hour(f"2026-09-20T{i:02d}:00", scores.get(i, 1.0)) for i in range(24)]
+    part = next(p for p in dayparts.build_days(hours)[0]["parts"]
+                if p["part"] == "afternoon")
+    assert part["score"] < 3.5
 
 
 def test_dayparts_height_min_max():

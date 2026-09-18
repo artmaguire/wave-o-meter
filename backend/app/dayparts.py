@@ -34,6 +34,29 @@ def _avg(xs: list[float | None], ndigits: int = 2) -> float | None:
     return round(sum(vals) / len(vals), ndigits) if vals else None
 
 
+def _best_sustained(scores: list[float | None], run: int = 2) -> float | None:
+    """Best sustained score in the window: the highest average over any `run`
+    consecutive hours.
+
+    A daypart bar should answer "was there good surf in this part of the day?".
+    A plain mean fails that — e.g. 12-3pm at 3.7-3.8 averaged with a 4-6pm tide
+    drop-off (1.6-2.5) reads ~3.1 and shows yellow, hiding a genuinely good
+    window. Requiring `run` consecutive hours stops one fluke hour inflating it.
+    """
+    vals = [s for s in scores if s is not None]
+    if not vals:
+        return None
+    if len(vals) < run:
+        return round(max(vals), 2)
+    best = None
+    for i in range(len(vals) - run + 1):
+        window = vals[i:i + run]
+        avg = sum(window) / run
+        if best is None or avg > best:
+            best = avg
+    return round(best, 2)
+
+
 def _part_summary(name: str, phours: list[dict]) -> dict:
     if not phours:
         return {"part": name, "score": None, "height_m": None}
@@ -42,7 +65,9 @@ def _part_summary(name: str, phours: list[dict]) -> dict:
     mid = phours[len(phours) // 2]
     return {
         "part": name,
-        "score": _avg([h.get("score") for h in phours]),
+        # headline score = best sustained surf in the window (see above)
+        "score": _best_sustained([h.get("score") for h in phours]),
+        "score_avg": _avg([h.get("score") for h in phours]),
         "height_m": _avg([s.get("height_m") for s in swell]),
         "period_s": _avg([s.get("period_s") for s in swell], 1),
         "swell_dir": _circular_mean([s.get("direction_deg") for s in swell]),
