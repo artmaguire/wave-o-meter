@@ -251,26 +251,26 @@
       "id": "bertra",
       "name": "Bertra",
       "county": "Mayo",
-      "lat": 53.79180635582777,
-      "lon": -9.657506320388839,
+      "lat": 53.7705,
+      "lon": -9.823,
       "break_type": "beach",
       "skill": "beginner",
       "optimal_swell_dir": [
-        290,
-        335
+        247,
+        320
       ],
       "optimal_wind_dir": [
-        95,
+        67,
         140
       ],
       "swell_height_m": [
-        0.8,
-        2.5
+        0.6,
+        2.8
       ],
-      "tide": "any",
-      "hazards": "",
-      "notes": "Sheltered Clew Bay sand beach; needs bigger swell. Orientation INFERRED from The Magharees (similar exposed sand beach) — no direct data gathered.",
-      "orientation_verified": false,
+      "tide": "mid",
+      "hazards": "Currents in the channel between the spit and Clew Bay. The tide changes the beach shape — keep an eye on it. Busy with families in summer. Cold water: proper wetsuit outside high summer.",
+      "notes": "Long, narrow tombolo beach reaching into Clew Bay near Westport, under Croagh Patrick — some of the best scenery in the country. Forgiving, family-friendly and a local pick on smaller days. Partly sheltered by Clew Bay and Clare Island, so it picks up less swell than the open Atlantic beaches: that makes it the reliable fallback when the open coast is too big or messy. Faces W; works most tides with mid the sweet spot, on a WSW-NW swell (best period 10-16 s) with an E offshore. Best Sep-Apr, though summer works too.",
+      "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/bertra-beach-murrisk-/614225683509a458801553ee",
         "surfcheck": "https://www.surfcheck.org/ireland/mayo/bertra-beach",
