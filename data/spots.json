@@ -12,7 +12,7 @@
       "county": "Clare",
       "lat": 52.7571,
       "lon": -9.494,
-      "break_type": "reef",
+      "break_type": "beach",
       "skill": "intermediate",
       "optimal_swell_dir": [
         157,
@@ -23,12 +23,12 @@
         202
       ],
       "swell_height_m": [
-        1.5,
-        4.0
+        0.8,
+        3.5
       ],
       "tide": "any",
-      "hazards": "Strong rips out of the bay; exposed flat rocks at low tide — impacts on closeouts.",
-      "notes": "Powerful left-hand reef over flat rocks; fast, hollow sections. Works all tides though mid-high smooths the rocks for safer take-offs. Very consistent; best Oct-Mar. Rarely crowded.",
+      "hazards": "DANGEROUS RIP CURRENTS — strong rips pull out across this bay and are the main hazard here; know your exits before paddling out. Exposed flat rocks at low tide on the reef side (left/north end) can cause impacts on closeouts. Big open beach: conditions and currents vary along its length.",
+      "notes": "Large, open beach — effectively two spots. The main sandy beach (what you'll normally surf) is a forgiving beach break working rights and lefts across all tides. There is ALSO a powerful left-hand reef over flat rocks to the LEFT (north) of the beach: that reef is advanced-only, needs 1.5 m+, and is best mid-high when the rocks are covered — it does NOT work all tides like the beach does. Very consistent year-round; best Oct-Mar. Rarely crowded.",
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/doughmore-bay-beach/61417c02e13493a6cb0b21d1",
