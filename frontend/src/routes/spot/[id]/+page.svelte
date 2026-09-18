@@ -42,6 +42,20 @@
   const spot = $derived(data?.spot);
   // Break the notes into readable paragraphs (~2 sentences each) so the local
   // knowledge block isn't one dense wall of text.
+  // Outbound comparison links, rendered generically so adding a source to
+  // spots.json needs no UI change. Order here is the display order.
+  const LINK_LABELS = {
+    surfline: 'Surfline',
+    surf_forecast: 'surf-forecast.com',
+    surfcheck: 'SurfCheck',
+    wavey: 'Wavey'
+  };
+  const compareLinks = $derived(
+    Object.entries(LINK_LABELS)
+      .filter(([k]) => spot?.links?.[k])
+      .map(([k, label]) => ({ label, url: spot.links[k] }))
+  );
+
   const noteParagraphs = $derived.by(() => {
     const text = (spot?.notes ?? '').trim();
     if (!text) return [];
@@ -291,20 +305,13 @@
       {/if}
     </section>
 
-    {#if spot.links && (spot.links.surfline || spot.links.surf_forecast)}
+    {#if compareLinks.length}
       <section class="compare">
         <h2>Compare forecasts</h2>
         <div class="links">
-          {#if spot.links.surfline}
-            <a href={spot.links.surfline} target="_blank" rel="noopener noreferrer">
-              Surfline ↗
-            </a>
-          {/if}
-          {#if spot.links.surf_forecast}
-            <a href={spot.links.surf_forecast} target="_blank" rel="noopener noreferrer">
-              surf-forecast.com ↗
-            </a>
-          {/if}
+          {#each compareLinks as l}
+            <a href={l.url} target="_blank" rel="noopener noreferrer">{l.label} ↗</a>
+          {/each}
         </div>
       </section>
     {/if}

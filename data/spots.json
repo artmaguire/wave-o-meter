@@ -32,7 +32,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/doughmore-bay-beach/61417c02e13493a6cb0b21d1",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Doughmore/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Doughmore/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/clare/doughmore",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/doughmore"
       }
     },
     {
@@ -61,7 +63,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/lahinch-beach/584204204e65fad6a7709126",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Lahinch/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Lahinch/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/clare/lahinch-strand",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/lahinch-beach"
       }
     },
     {
@@ -90,7 +94,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/fanore-beach/640b9e51451905b052e0cc0d",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Fanore/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Fanore/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/clare/fanore",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-clare/fanore"
       }
     },
     {
@@ -148,7 +154,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey/5842041f4e65fad6a7708c3d",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Left/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Left/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/sligo/easkey-left",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/easkey-left"
       }
     },
     {
@@ -177,7 +185,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/easkey-right/605108f4910e9d6e864795ae",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Right/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Easky-Right/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/sligo/easkey-right",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/easkey-right"
       }
     },
     {
@@ -206,7 +216,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/strandhill/5842041f4e65fad6a7708b58",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Strandhill/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Strandhill/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/sligo/strandhill",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-sligo/strandhill"
       }
     },
     {
@@ -234,7 +246,9 @@
       "notes": "Sheltered Clew Bay sand beach; needs bigger swell. Orientation INFERRED from The Magharees (similar exposed sand beach) — no direct data gathered.",
       "orientation_verified": false,
       "links": {
-        "surfline": "https://www.surfline.com/surf-report/bertra-beach-murrisk-/614225683509a458801553ee"
+        "surfline": "https://www.surfline.com/surf-report/bertra-beach-murrisk-/614225683509a458801553ee",
+        "surfcheck": "https://www.surfcheck.org/ireland/mayo/bertra-beach",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-mayo/bertra-beach-murrisk"
       }
     },
     {
@@ -263,7 +277,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/keel-beach/584204204e65fad6a7709124",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Keel/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Keel/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/mayo/keel-beach",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-mayo/achill-island-keel-beach"
       }
     },
     {
@@ -293,7 +309,9 @@
       "orientation_verified": true,
       "links": {
         "surfline": "https://www.surfline.com/surf-report/brandon-bay/584204204e65fad6a770945c",
-        "surf_forecast": "https://www.surf-forecast.com/breaks/Scraggane-Bay/forecasts/latest"
+        "surf_forecast": "https://www.surf-forecast.com/breaks/Scraggane-Bay/forecasts/latest",
+        "surfcheck": "https://www.surfcheck.org/ireland/kerry/sandy-beach",
+        "wavey": "https://waveysurf.com/surf-forecast/ireland/county-kerry/brandon-bay"
       }
     }
   ]
