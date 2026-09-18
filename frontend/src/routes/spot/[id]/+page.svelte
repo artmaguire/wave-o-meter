@@ -306,7 +306,6 @@
       <h2>Local knowledge</h2>
       {#each noteParagraphs as para}<p>{para}</p>{/each}
       {#if spot.hazards}<p class="hazard">⚠ {spot.hazards}</p>{/if}
-      <p class="muted small">Prefers {spot.tide_pref} tide.</p>
       {#if !spot.orientation_verified}
         <p class="muted small">Orientation data for this spot is provisional.</p>
       {/if}
