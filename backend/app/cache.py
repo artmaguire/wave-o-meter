@@ -12,25 +12,13 @@ API serves cached JSON directly and only recomputes on refresh.
 from __future__ import annotations
 
 import json
-import sqlite3
-import threading
 from datetime import datetime, timezone
 
-from . import config
-
-_lock = threading.Lock()
-
-
-def _connect() -> sqlite3.Connection:
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(config.DB_PATH, timeout=30)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
+from . import config, db
 
 
 def init_db() -> None:
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS forecast_cache (
@@ -43,7 +31,7 @@ def init_db() -> None:
 
 
 def get(spot_id: str) -> dict | None:
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         row = conn.execute(
             "SELECT fetched_at, payload FROM forecast_cache WHERE spot_id=?",
             (spot_id,),
@@ -55,7 +43,7 @@ def get(spot_id: str) -> dict | None:
 
 def put(spot_id: str, payload: dict) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         conn.execute(
             "INSERT INTO forecast_cache (spot_id, fetched_at, payload) "
             "VALUES (?,?,?) ON CONFLICT(spot_id) DO UPDATE SET "

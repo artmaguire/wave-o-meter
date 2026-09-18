@@ -12,7 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-SUITES = ["tests.test_scoring", "tests.test_auth", "tests.test_engine"]
+SUITES = ["tests.test_scoring", "tests.test_auth", "tests.test_engine",
+          "tests.test_security_helpers"]
 
 
 def main() -> int:

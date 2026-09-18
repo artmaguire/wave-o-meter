@@ -9,25 +9,13 @@ calibration step builds on this later.
 
 from __future__ import annotations
 
-import sqlite3
-import threading
 from datetime import datetime, timezone
 
-from . import config
-
-_lock = threading.Lock()
-
-
-def _connect() -> sqlite3.Connection:
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(config.DB_PATH, timeout=30)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
+from . import db
 
 
 def init_db() -> None:
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS sessions (
@@ -45,7 +33,7 @@ def init_db() -> None:
 def add(spot_id: str, date: str, rating: int, notes: str = "") -> dict:
     rating = max(0, min(5, int(rating)))
     created = datetime.now(timezone.utc).isoformat()
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         cur = conn.execute(
             "INSERT INTO sessions (spot_id, date, rating, notes, created_at) "
             "VALUES (?,?,?,?,?)",
@@ -57,7 +45,7 @@ def add(spot_id: str, date: str, rating: int, notes: str = "") -> dict:
 
 
 def list_for(spot_id: str | None = None, limit: int = 100) -> list[dict]:
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         if spot_id:
             rows = conn.execute(
                 "SELECT * FROM sessions WHERE spot_id=? ORDER BY date DESC, id DESC "
@@ -70,6 +58,6 @@ def list_for(spot_id: str | None = None, limit: int = 100) -> list[dict]:
 
 
 def delete(session_id: int) -> bool:
-    with _lock, _connect() as conn:
+    with db.lock, db.connect() as conn:
         cur = conn.execute("DELETE FROM sessions WHERE id=?", (session_id,))
         return cur.rowcount > 0
