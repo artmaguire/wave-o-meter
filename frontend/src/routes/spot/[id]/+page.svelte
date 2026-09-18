@@ -282,6 +282,7 @@
               </span>
               <span class="c-wind">
                 <span class="val">{msToKmh(h.wind.speed_ms)}<span class="unit">km/h</span></span>
+                <span class="arrow" style="transform:{dirArrow(h.wind.direction_deg)}">↑</span>
               </span>
               <span class="c-type">
                 <span class="wtype wtype-{h.wind.relation}">{h.wind.relation}</span>
@@ -426,9 +427,9 @@
      instead of compressing/cutting off the tide column */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border); border-radius: var(--radius); }
-  .table { background: var(--bg-card); min-width: 680px; }
+  .table { background: var(--bg-card); min-width: 700px; }
   .thead, .trow { display: grid;
-    grid-template-columns: 4rem 4.6rem 4.8rem 4.4rem 4rem 4.8rem 3.2rem 3.2rem;
+    grid-template-columns: 4rem 4.6rem 4.8rem 4.4rem 4.6rem 4.8rem 3.2rem 3.2rem;
     align-items: center; column-gap: var(--sp-3);
     padding: var(--sp-3) var(--sp-4); }
   .thead { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
